@@ -2,9 +2,9 @@
   <view class="notes-container">
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
-      <text class="nav-title">备忘录</text>
+      <text class="nav-title">EchoNote</text>
       <view class="nav-actions">
-        <uni-icons type="search" size="24" color="#1F2937" @click="goToSearch"></uni-icons>
+        <uni-icons type="search" size="24" color='red' @click="goToSearch"></uni-icons>
         <uni-icons type="plus" size="24" color="#1F2937" @click="showActionSheet"></uni-icons>
       </view>
     </view>
@@ -41,26 +41,7 @@
     <button class="fab" @click="createTextMemo">
       <text class="fab-icon">+</text>
     </button>
-
-    <!-- ActionSheet -->
-    <uni-popup ref="popup" type="bottom">
-      <uni-popup-share 
-        title="新建备忘录"
-        :beforeClose="true"
-        @select="handleActionSelect"
-      >
-        <uni-popup-share-item
-          title="文字备忘录"
-          icon="compose"
-          @click="createTextMemo"
-        />
-        <uni-popup-share-item
-          title="语音备忘录"
-          icon="mic-filled"
-          @click="createVoiceMemo"
-        />
-      </uni-popup-share>
-    </uni-popup>
+   
   </view>
 </template>
 
@@ -233,33 +214,42 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #F9FAFB;
+  background: linear-gradient(135deg, #667eea, #764ba2); /* 渐变背景 */
+  color: white;
+  padding: 16px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
 }
 
 .nav-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  height: 44px;
-  background-color: #fff;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid #E5E7EB;
+  backdrop-filter: blur(8px); /* 毛玻璃 */
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 20px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  margin-bottom: 16px;
 }
 
 .nav-title {
-  font-size: 20px;
-  font-weight: bold;
-  color: #1F2937;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
 
-.nav-actions {
-  display: flex;
-  gap: 16px;
+.nav-actions uni-icons {
+  margin-left: 14px;
+  transition: transform 0.3s ease;
+}
+
+.nav-actions uni-icons:hover {
+  transform: scale(1.2);
+  color: #ffdd57;
 }
 
 .notes-list {

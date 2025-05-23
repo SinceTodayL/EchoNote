@@ -1,67 +1,71 @@
 {
-	"pages": [ 
-		{
-			"path": "pages/notes/notes",
-			"style": {
-				"navigationBarTitleText": "备忘录",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/notes/new-memo",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/notes/search",
-			"style": {
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/todo/todo",
-			"style": {
-				"navigationBarTitleText": "待办事项"
-			}
-		},
-		{
-			"path": "pages/profile/profile",
-			"style": {
-				"navigationBarTitleText": "我的"
-			}
-		}
-	],
-	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "EchoNote",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
-	},
-	"tabBar": {
-		"color": "#7A7E83",
-		"selectedColor": "#3cc51f",
-		"borderStyle": "black",
-		"backgroundColor": "#ffffff",
-		"list": [
-			{
-				"pagePath": "pages/notes/notes",
-				"iconPath": "static/images/notes.png",
-				"selectedIconPath": "static/images/notes-active.png",
-				"text": "备忘录"
-			},
-			{
-				"pagePath": "pages/todo/todo",
-				"iconPath": "static/images/todo.png",
-				"selectedIconPath": "static/images/todo-active.png",
-				"text": "待办事项"
-			},
-			{
-				"pagePath": "pages/profile/profile",
-				"iconPath": "static/images/profile.png",
-				"selectedIconPath": "static/images/profile-active.png",
-				"text": "我的"
-			}
-		]
-	}
+    "pages": [{
+            "path": "pages/notes/notes",
+            "style": {
+                "navigationBarTitleText": "EchoNote",
+                "navigationStyle": "custom",
+                "backgroundColor": "red"
+            }
+        },
+        {
+            "path": "pages/notes/new-memo",
+            "style": {
+                "navigationStyle": "custom",
+                "backgroundColor": "#FFF8F0"
+            }
+        },
+        {
+            "path": "pages/notes/search",
+            "style": {
+                "navigationStyle": "custom",
+                "backgroundColor": "#FFF8F0"
+            }
+        },
+        {
+            "path": "pages/todo/todo",
+            "style": {
+                "navigationBarTitleText": "待办清单",
+                "backgroundColor": "#FFF8F0"
+            }
+        },
+        {
+            "path": "pages/profile/profile",
+            "style": {
+                "navigationBarTitleText": "个人中心",
+                "backgroundColor": "#FFF8F0"
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "black",
+        "navigationBarTitleText": "EchoNote",
+        "navigationBarBackgroundColor": "#FFEEDD",
+        "backgroundColor": "#FFF8F0"
+    },
+    "tabBar": {
+        "color": "#9CA3AF",
+        "selectedColor": "#FB923C",
+        "borderStyle": "white",
+        "backgroundColor": "#FFFBF3",
+        "custom": true,
+        "list": [{
+                "pagePath": "pages/notes/notes",
+                "iconPath": "static/notes-round.png",
+                "selectedIconPath": "static/notes-round-active.jpg",
+                "text": "文本"
+            },
+            {
+                "pagePath": "pages/todo/todo",
+                "iconPath": "static/images/todo-round.png",
+                "selectedIconPath": "static/images/todo-round-active.png",
+                "text": "待办"
+            },
+            {
+                "pagePath": "pages/profile/profile",
+                "iconPath": "static/images/profile-round.png",
+                "selectedIconPath": "static/images/profile-round-active.png",
+                "text": "我的"
+            }
+        ]
+    }
 }
