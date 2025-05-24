@@ -89,9 +89,26 @@ const highlightText = (text: string) => {
   return text.replace(regex, '<span class="highlight">$1</span>')
 }
 
+// 加载笔记数据
+const loadNotes = () => {
+  try {
+    const storageNotes = uni.getStorageSync('notes')
+    if (storageNotes) {
+      notes.value = JSON.parse(JSON.stringify(storageNotes))
+    }
+  } catch (e) {
+    console.error('加载笔记失败:', e)
+    uni.showToast({
+      title: '加载笔记失败',
+      icon: 'none'
+    })
+  }
+}
+
 // 搜索处理
 const onSearch = () => {
-  // TODO: 如果需要，可以在这里添加防抖处理
+  // 实时搜索，不需要额外处理
+  // 因为 filteredNotes 是计算属性，会自动更新
 }
 
 // 清除搜索
@@ -113,17 +130,7 @@ const openNote = (note: Note) => {
 
 // 页面加载时获取数据
 onLoad(() => {
-  // TODO: 从后端获取笔记数据
-  // 模拟数据
-  notes.value = [
-    {
-      id: 1,
-      title: '示例笔记',
-      content: '这是一个示例笔记的内容...',
-      updateTime: new Date(),
-      backgroundColor: '#F9FAFB'
-    }
-  ]
+  loadNotes()
 })
 </script>
 

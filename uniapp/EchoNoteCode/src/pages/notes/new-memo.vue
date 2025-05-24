@@ -14,7 +14,7 @@
     </view>
 
     <!-- 编辑区域 -->
-    <view class="edit-area">
+    <view class="edit-area" :class="currentTheme">
       <input
         class="title-input"
         type="text"
@@ -23,13 +23,21 @@
         :maxlength="50"
         @input="onTitleInput"
       />
-      <textarea
-        class="content-input"
-        v-model="content"
-        placeholder="开始输入..."
-        :maxlength="5000"
-        @input="onContentInput"
-      />
+      <view class="content-wrapper">
+        <textarea
+          v-show="!isPreview"
+          class="content-input"
+          v-model="content"
+          placeholder="开始输入..."
+          :maxlength="5000"
+          @input="onContentInput"
+        />
+        <view 
+          v-show="isPreview"
+          class="markdown-preview"
+          v-html="renderedContent"
+        ></view>
+      </view>
     </view>
 
     <!-- 工具栏 -->
@@ -63,18 +71,28 @@
             @click="showColorPicker"
           ></view>
           <uni-icons 
+            type="font" 
+            size="24" 
+            color="#374151" 
+            @click="showThemeSelector"
+          ></uni-icons>
+          <uni-icons 
+            :type="isPreview ? 'eye-slash' : 'eye'" 
+            size="24" 
+            :color="isPreview ? '#3B82F6' : '#374151'"
+            @click="togglePreview"
+          ></uni-icons>
+          <uni-icons 
             :type="isFavorite ? 'star-filled' : 'star'" 
-            size="18" 
-            :color="isFavorite ? '#F59E0B' : '#9CA3AF'"
+            size="24" 
+            :color="isFavorite ? '#F59E0B' : '#374151'"
             @click="toggleFavorite"
-            class="tool-icon"
           ></uni-icons>
           <uni-icons 
             :type="isPinned ? 'pushpin-filled' : 'pushpin'" 
-            size="18" 
-            :color="isPinned ? '#3B82F6' : '#9CA3AF'"
+            size="24" 
+            :color="isPinned ? '#3B82F6' : '#374151'"
             @click="togglePin"
-            class="tool-icon"
           ></uni-icons>
         </view>
       </view>
@@ -85,16 +103,8 @@
     <uni-popup ref="popup" type="bottom">
       <view class="popup-content">
         <view class="popup-list">
-          <view class="popup-item" @click="handleShare">
-            <uni-icons type="redo" size="20" color="#374151"></uni-icons>
-            <text>分享</text>
-          </view>
-          <view class="popup-item" @click="handleDelete">
-            <uni-icons type="trash" size="20" color="#374151"></uni-icons>
-            <text>删除</text>
-          </view>
+          
         </view>
-        <view class="popup-cancel" @click="closePopup">取消</view>
       </view>
     </uni-popup>
   </view>
@@ -117,6 +127,8 @@ const backgroundColor = ref('#FFFFFF')
 const isFavorite = ref(false)
 const isPinned = ref(false)
 const showColorPanel = ref(false)
+const isPreview = ref(false)
+const renderedContent = ref('')
 
 // 颜色列表
 const colorList = [
@@ -125,9 +137,20 @@ const colorList = [
   { name: '粉红', value: '#FFF1F0' },
   { name: '薄荷', value: '#F6FFED' },
   { name: '天蓝', value: '#E6F7FF' },
-  { name: '紫色', value: '#F9F0FF' },
-  { name: '灰色', value: '#FAFAFA' }
+  { name: '紫色', value: '#F9F0FF' }
 ]
+
+// 主题列表
+const themes = [
+  { name: '默认', value: 'newsprint' },
+  { name: 'Github', value: 'github' },
+  { name: 'Whitey', value: 'whitey' },
+  { name: 'Night', value: 'night' },
+  { name: 'Pixyll', value: 'pixyll' }
+]
+
+// 当前主题
+const currentTheme = ref('Github')
 
 // 生命周期
 onLoad((options: Record<string, string> | undefined) => {
@@ -143,6 +166,8 @@ onLoad((options: Record<string, string> | undefined) => {
 onMounted(() => {
   // 启动自动保存
   autoSaveInterval.value = setInterval(autoSave, 30000) as unknown as number
+  // 加载默认主题
+  changeTheme(currentTheme.value)
 })
 
 onBeforeUnmount(() => {
@@ -253,6 +278,7 @@ const onTitleInput = () => {
 
 const onContentInput = () => {
   hasChanges.value = true
+  renderedContent.value = formatMarkdown(content.value)
 }
 
 // 返回处理
@@ -275,15 +301,31 @@ const goBack = () => {
   }
 }
 
-// 颜色选择器
-const showColorPicker = () => {
-  colorPopup.value.open()
+// 显示主题选择器
+const showThemeSelector = () => {
+  uni.showActionSheet({
+    itemList: themes.map(theme => theme.name),
+    success: (res) => {
+      const selectedTheme = themes[res.tapIndex].value
+      changeTheme(selectedTheme)
+    }
+  })
 }
 
-const selectColor = (color: string) => {
-  backgroundColor.value = color
-  hasChanges.value = true
-  colorPopup.value.close()
+// 改变主题
+const changeTheme = (themeName: string) => {
+  currentTheme.value = themeName
+  // 动态加载主题CSS
+  const link = document.createElement('link')
+  link.rel = 'stylesheet'
+  link.href = `/src/static/css/${themeName}.css`
+  // 移除之前的主题
+  const oldTheme = document.querySelector('link[data-theme]')
+  if (oldTheme) {
+    oldTheme.remove()
+  }
+  link.setAttribute('data-theme', 'true')
+  document.head.appendChild(link)
 }
 
 // 收藏和置顶
@@ -315,29 +357,57 @@ const handleShare = () => {
   })
 }
 
-// 删除处理
-const handleDelete = () => {
-  closePopup()
-  uni.showModal({
-    title: '确认删除',
-    content: '确定要删除这条备忘录吗？',
-    success: (res) => {
-      if (res.confirm && noteId.value) {
-        try {
-          const notes = uni.getStorageSync('notes') || []
-          const newNotes = notes.filter((n: any) => n.id !== noteId.value)
-          uni.setStorageSync('notes', newNotes)
-          uni.navigateBack()
-        } catch (e) {
-          console.error('删除笔记失败:', e)
-          uni.showToast({
-            title: '删除失败',
-            icon: 'none'
-          })
-        }
-      }
-    }
-  })
+// Markdown 格式化
+const formatMarkdown = (text: string) => {
+  if (!text) return ''
+  
+  // 处理标题
+  text = text.replace(/^# (.*$)/gm, '<h1>$1</h1>')
+  text = text.replace(/^## (.*$)/gm, '<h2>$1</h2>')
+  text = text.replace(/^### (.*$)/gm, '<h3>$1</h3>')
+  
+  // 处理引用
+  text = text.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
+  
+  // 处理粗体
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  
+  // 处理斜体
+  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>')
+  
+  // 处理代码块
+  text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+  
+  // 处理行内代码
+  text = text.replace(/`(.*?)`/g, '<code>$1</code>')
+  
+  // 处理列表
+  text = text.replace(/^\- (.*$)/gm, '<li>$1</li>')
+  text = text.replace(/(<li>.*<\/li>)/gm, '<ul>$1</ul>')
+  
+  // 处理换行
+  text = text.replace(/\n/g, '<br>')
+  
+  return text
+}
+
+// 颜色选择器
+const showColorPicker = () => {
+  colorPopup.value.open()
+}
+
+const selectColor = (color: string) => {
+  backgroundColor.value = color
+  hasChanges.value = true
+  colorPopup.value.close()
+}
+
+// 切换预览模式
+const togglePreview = () => {
+  isPreview.value = !isPreview.value
+  if (isPreview.value) {
+    renderedContent.value = formatMarkdown(content.value)
+  }
 }
 </script>
 
@@ -381,36 +451,140 @@ const handleDelete = () => {
   padding: 16px;
   overflow-y: auto;
   background-color: transparent;
-}
 
-.title-input {
-  font-size: 20px;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 12px;
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  
-  &::placeholder {
-    color: #9CA3AF;
+  &.newsprint, &.github, &.whitey, &.night, &.pixyll {
+    h1 {
+      font-size: 2em;
+      margin-bottom: 0.5em;
+      border-bottom: 1px solid #eaecef;
+    }
+
+    h2 {
+      font-size: 1.5em;
+      margin-bottom: 0.5em;
+      border-bottom: 1px solid #eaecef;
+    }
+
+    h3 {
+      font-size: 1.25em;
+      margin-bottom: 0.5em;
+    }
+
+    blockquote {
+      padding: 0 1em;
+      color: #6a737d;
+      border-left: 0.25em solid #dfe2e5;
+      margin: 1em 0;
+    }
+
+    code {
+      background-color: rgba(27,31,35,0.05);
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,Courier,monospace;
+    }
+
+    pre code {
+      display: block;
+      padding: 1em;
+      overflow-x: auto;
+    }
+
+    li {
+      margin-left: 1em;
+      list-style-type: disc;
+    }
   }
 }
 
-.content-input {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #374151;
+.title-input {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
   width: 100%;
-  height: calc(100% - 32px);
   background: transparent;
   border: none;
   outline: none;
-  resize: none;
+}
+
+.content-wrapper {
+  position: relative;
+  flex: 1;
+  height: calc(100% - 60px);
+}
+
+.content-input,
+.markdown-preview {
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  line-height: 1.6;
+  background: transparent;
+  border: none;
+  outline: none;
+  overflow-y: auto;
+}
+
+.markdown-preview {
+  padding: 8px;
   
-  &::placeholder {
-    color: #9CA3AF;
+  h1, h2, h3 {
+    margin: 16px 0 8px;
+    font-weight: bold;
+  }
+  
+  h1 {
+    font-size: 24px;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 8px;
+  }
+  
+  h2 {
+    font-size: 20px;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 6px;
+  }
+  
+  h3 {
+    font-size: 18px;
+  }
+  
+  blockquote {
+    margin: 16px 0;
+    padding: 0 16px;
+    color: #6a737d;
+    border-left: 4px solid #dfe2e5;
+  }
+  
+  code {
+    background-color: rgba(27,31,35,0.05);
+    border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 85%;
+    padding: 0.2em 0.4em;
+  }
+  
+  pre {
+    background-color: #f6f8fa;
+    border-radius: 3px;
+    padding: 16px;
+    overflow: auto;
+    
+    code {
+      background-color: transparent;
+      padding: 0;
+      font-size: 100%;
+    }
+  }
+  
+  ul {
+    padding-left: 20px;
+    margin: 8px 0;
+    
+    li {
+      list-style-type: disc;
+      margin: 4px 0;
+    }
   }
 }
 
@@ -422,31 +596,18 @@ const handleDelete = () => {
   background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   border-top: 1px solid #E5E7EB;
-  height: 40px;
+  height: 18%;
+}
+
+.tool-left {
+  display: flex;
+  align-items: center;
 }
 
 .mini-tool-group {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.color-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1px solid #E5E7EB;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    transform: scale(1.1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  &:active {
-    transform: scale(0.95);
-  }
+  gap: 24px;
 }
 
 .tool-icon {
@@ -469,7 +630,6 @@ const handleDelete = () => {
   background-color: #FFFFFF;
   border-radius: 12px 12px 0 0;
   padding: 16px;
-  width: 100%;
 }
 
 .color-list {

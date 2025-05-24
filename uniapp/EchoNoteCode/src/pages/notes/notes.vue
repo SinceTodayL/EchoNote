@@ -3,8 +3,15 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <text class="nav-title">EchoNote</text>
+      <view class="search-bar">
+        <image 
+          src="/static/search.png" 
+          mode="aspectFit" 
+          class="search-icon"
+          @click="goToSearch"
+        />
+      </view>
       <view class="nav-actions">
-        <uni-icons type="search" size="24" @click="goToSearch" />
         <uni-icons type="plus" size="24" @click="showActionSheet" />
       </view>
     </view>
@@ -27,7 +34,9 @@
         class="note-item"
         :style="{ backgroundColor: note.backgroundColor || '#FFF5E5' }"
         @click="openNote(note)"
-        @longpress="showNoteActions(note)"
+        @contextmenu.prevent="showNoteActions(note)"
+        @touchstart="handleTouchStart(note, $event)"
+        @touchend="handleTouchEnd"
       >
         <view class="note-content">
           <text class="note-title">{{ note.title }}</text>
@@ -63,6 +72,11 @@ interface Note {
 const notes = ref<Note[]>([])
 const isRefreshing = ref(false)
 const popup = ref()
+
+// 长按计时器和状态
+const longPressTimer = ref<number | null>(null)
+const touchStartTime = ref(0)
+const LONG_PRESS_DURATION = 500 // 长按触发时间（毫秒）
 
 // 计算属性：排序后的笔记列表（置顶优先，然后按时间倒序）
 const sortedNotes = computed(() => {
@@ -114,43 +128,90 @@ const openNote = (note: Note) => {
   })
 }
 
+// 处理触摸开始
+const handleTouchStart = (note: Note, event: TouchEvent) => {
+  touchStartTime.value = Date.now()
+  longPressTimer.value = setTimeout(() => {
+    showNoteActions(note)
+  }, LONG_PRESS_DURATION) as unknown as number
+}
+
+// 处理触摸结束
+const handleTouchEnd = () => {
+  if (longPressTimer.value) {
+    clearTimeout(longPressTimer.value)
+    longPressTimer.value = null
+  }
+}
+
 // 显示笔记操作菜单
 const showNoteActions = (note: Note) => {
+  // 如果是短按，不显示菜单
+  if (Date.now() - touchStartTime.value < LONG_PRESS_DURATION) {
+    return
+  }
+  
   uni.showActionSheet({
-    itemList: ['编辑', '复制', '删除'],
+    itemList: [note.isPinned ? '取消置顶' : '置顶', '删除'],
     success: (res) => {
       switch (res.tapIndex) {
         case 0:
-          openNote(note)
+          togglePin(note)
           break
         case 1:
-          uni.setClipboardData({
-            data: note.content,
-            success: () => {
-              uni.showToast({
-                title: '已复制到剪贴板',
-                icon: 'none'
-              })
-            }
-          })
-          break
-        case 2:
-          deleteNote(note.id)
+          handleDelete(note)
           break
       }
     }
   })
 }
 
+// 置顶/取消置顶笔记
+const togglePin = (note: Note) => {
+  try {
+    const allNotes = uni.getStorageSync('notes') || []
+    const index = allNotes.findIndex((n: any) => n.id === note.id)
+    if (index > -1) {
+      allNotes[index].isPinned = !allNotes[index].isPinned
+      uni.setStorageSync('notes', allNotes)
+      loadNotes() // 重新加载笔记列表
+      uni.showToast({
+        title: allNotes[index].isPinned ? '已置顶' : '已取消置顶',
+        icon: 'success'
+      })
+    }
+  } catch (e) {
+    console.error('操作失败:', e)
+    uni.showToast({
+      title: '操作失败',
+      icon: 'none'
+    })
+  }
+}
+
 // 删除笔记
-const deleteNote = (id: number) => {
+const handleDelete = (note: Note) => {
   uni.showModal({
     title: '确认删除',
     content: '确定要删除这条备忘录吗？',
     success: (res) => {
       if (res.confirm) {
-        notes.value = notes.value.filter(note => note.id !== id)
-        // TODO: 同步到后端
+        try {
+          const allNotes = uni.getStorageSync('notes') || []
+          const newNotes = allNotes.filter((n: any) => n.id !== note.id)
+          uni.setStorageSync('notes', newNotes)
+          loadNotes() // 重新加载笔记列表
+          uni.showToast({
+            title: '已删除',
+            icon: 'success'
+          })
+        } catch (e) {
+          console.error('删除失败:', e)
+          uni.showToast({
+            title: '删除失败',
+            icon: 'none'
+          })
+        }
       }
     }
   })
@@ -211,9 +272,9 @@ onShow(() => {
   padding: 20px 20px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   margin-bottom: 0%;
-  position:sticky;
+  position: sticky;
   top: 0;
-  z-index: 50
+  z-index: 50;
 }
 
 .nav-title {
@@ -224,14 +285,30 @@ onShow(() => {
   text-shadow: 1px 1px 1px rgba(49, 46, 5, 0.2);
 }
 
-.nav-actions uni-icons {
-  margin-left: 14px;
-  transition: transform 0.3s ease;
+.search-bar {
+  flex: 1;
+  margin: 0 16px;
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
-.nav-actions uni-icons:hover {
-  transform: scale(1.2);
-  color: #ffdd57;
+.search-icon {
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-actions uni-icons {
+  font-size: 24px;
+  color: #b37a41;
 }
 
 .notes-list {
