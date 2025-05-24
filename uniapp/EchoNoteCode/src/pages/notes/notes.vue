@@ -4,8 +4,8 @@
     <view class="nav-bar">
       <text class="nav-title">EchoNote</text>
       <view class="nav-actions">
-        <uni-icons type="search" size="24" color='red' @click="goToSearch"></uni-icons>
-        <uni-icons type="plus" size="24" color="#1F2937" @click="showActionSheet"></uni-icons>
+        <uni-icons type="search" size="24" @click="goToSearch" />
+        <uni-icons type="plus" size="24" @click="showActionSheet" />
       </view>
     </view>
 
@@ -25,7 +25,7 @@
         v-for="note in sortedNotes" 
         :key="note.id" 
         class="note-item"
-        :style="{ backgroundColor: note.backgroundColor || '#F9FAFB' }"
+        :style="{ backgroundColor: note.backgroundColor || '#FFF5E5' }"
         @click="openNote(note)"
         @longpress="showNoteActions(note)"
       >
@@ -41,9 +41,9 @@
     <button class="fab" @click="createTextMemo">
       <text class="fab-icon">+</text>
     </button>
-   
   </view>
 </template>
+
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
@@ -97,27 +97,6 @@ const handleActionSelect = (e: any) => {
 const createTextMemo = () => {
   uni.navigateTo({
     url: '/pages/notes/new-memo'
-  })
-}
-
-// 创建语音备忘录
-const createVoiceMemo = () => {
-  const recorderManager = uni.getRecorderManager()
-  
-  recorderManager.onStop((res) => {
-    // 语音识别完成后跳转到编辑页面
-    uni.navigateTo({
-      url: `/pages/notes/new-memo?content=${encodeURIComponent(res.text || '')}`
-    })
-  })
-
-  // 开始录音
-  recorderManager.start({
-    duration: 60000,
-    sampleRate: 16000,
-    numberOfChannels: 1,
-    encodeBitRate: 48000,
-    format: 'mp3'
   })
 }
 
@@ -214,8 +193,8 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea, #764ba2); /* 渐变背景 */
-  color: white;
+  background: linear-gradient(135deg, #fdf2e9 0%, #fae6c8 100%);
+  color: #5c5246;
   padding: 16px;
   box-sizing: border-box;
   position: relative;
@@ -226,20 +205,23 @@ onShow(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  backdrop-filter: blur(8px); /* 毛玻璃 */
+  backdrop-filter: blur(8px); 
   background: rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 12px 20px;
+  padding: 20px 20px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  margin-bottom: 16px;
+  margin-bottom: 0%;
+  position:sticky;
+  top: 0;
+  z-index: 50
 }
 
 .nav-title {
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 1000;
   letter-spacing: 1px;
-  color: #ffffff;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  color: #b37a41;
+  text-shadow: 1px 1px 1px rgba(49, 46, 5, 0.2);
 }
 
 .nav-actions uni-icons {
@@ -253,9 +235,16 @@ onShow(() => {
 }
 
 .notes-list {
-  margin-top: 44px;
+  margin-top: 20px;
   flex: 1;
-  padding: 16px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.notes-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .empty-state {
@@ -263,7 +252,7 @@ onShow(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 32px;
+  padding: 20px;
 }
 
 .empty-state text {
@@ -337,40 +326,8 @@ onShow(() => {
 
 .fab-icon {
   color: #fff;
-  font-size: 32px;
+  font-size: 200%;
   font-weight: bold;
-  line-height: 1;
-}
-
-/* 暗黑模式适配 */
-@media (prefers-color-scheme: dark) {
-  .notes-container {
-    background-color: #1E1E1E;
-  }
-
-  .nav-bar {
-    background-color: #1E1E1E;
-    border-bottom-color: #374151;
-  }
-
-  .nav-title {
-    color: #F3F4F6;
-  }
-
-  .note-item {
-    background-color: #262626;
-  }
-
-  .note-title {
-    color: #F3F4F6;
-  }
-
-  .note-preview {
-    color: #9CA3AF;
-  }
-
-  .note-date {
-    color: #6B7280;
-  }
+  line-height: 2;
 }
 </style> 

@@ -50,7 +50,7 @@
         "custom": true,
         "list": [{
                 "pagePath": "pages/notes/notes",
-                "iconPath": "static/notes-round.png",
+                "iconPath": "static/notes-round-active.jpg",
                 "selectedIconPath": "static/notes-round-active.jpg",
                 "text": "文本"
             },
