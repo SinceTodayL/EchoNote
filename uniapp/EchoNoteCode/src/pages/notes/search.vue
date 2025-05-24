@@ -49,13 +49,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import { getAllNotes } from '@/utils/fileStorage'
 
 interface Note {
   id: number
   title: string
   content: string
-  updateTime: Date
-  backgroundColor?: string
+  updateTime: number
+  createTime: number
+  isPinned: boolean
+  backgroundColor: string
+  isFavorite: boolean
 }
 
 // 状态
@@ -73,8 +77,9 @@ const filteredNotes = computed(() => {
 })
 
 // 格式化日期
-const formatDate = (date: Date) => {
-  return new Date(date).toLocaleString('zh-CN', {
+const formatDate = (timestamp: number) => {
+  const date = new Date(timestamp)
+  return date.toLocaleString('zh-CN', {
     month: 'numeric',
     day: 'numeric',
     hour: '2-digit',
@@ -90,12 +95,10 @@ const highlightText = (text: string) => {
 }
 
 // 加载笔记数据
-const loadNotes = () => {
+const loadNotes = async () => {
   try {
-    const storageNotes = uni.getStorageSync('notes')
-    if (storageNotes) {
-      notes.value = JSON.parse(JSON.stringify(storageNotes))
-    }
+    const allNotes = await getAllNotes()
+    notes.value = allNotes
   } catch (e) {
     console.error('加载笔记失败:', e)
     uni.showToast({
@@ -105,10 +108,7 @@ const loadNotes = () => {
   }
 }
 
-// 搜索处理
 const onSearch = () => {
-  // 实时搜索，不需要额外处理
-  // 因为 filteredNotes 是计算属性，会自动更新
 }
 
 // 清除搜索
@@ -129,8 +129,8 @@ const openNote = (note: Note) => {
 }
 
 // 页面加载时获取数据
-onLoad(() => {
-  loadNotes()
+onLoad(async () => {
+  await loadNotes()
 })
 </script>
 

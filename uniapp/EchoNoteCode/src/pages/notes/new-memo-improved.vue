@@ -177,7 +177,6 @@ const colorList = [
 const themes = [
   { name: '默认', value: 'newsprint' },
   { name: 'Github', value: 'github' },
-  { name: 'Night', value: 'night' },
   { name: 'Whitey', value: 'whitey' },
   { name: 'Pixyll', value: 'pixyll' }
 ]

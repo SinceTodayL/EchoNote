@@ -54,7 +54,9 @@
     "@dcloudio/uni-quickapp-webview": "3.0.0-4060420250429001",
     "@dcloudio/uni-ui": "^1.5.7",
     "@types/crypto-js": "^4.2.2",
+    "@types/marked": "^5.0.2",
     "crypto-js": "^4.2.0",
+    "marked": "^15.0.12",
     "vue": "^3.4.21",
     "vue-i18n": "^9.1.9",
     "vuex": "^4.1.0"

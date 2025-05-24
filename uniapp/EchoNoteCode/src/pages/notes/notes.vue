@@ -107,12 +107,7 @@ const handleActionSelect = (e: any) => {
   popup.value.close()
 }
 
-// 创建文字备忘录
-const createTextMemo = () => {
-  uni.navigateTo({
-    url: '/pages/notes/new-memo'
-  })
-}
+// 创建文字备忘录const createTextMemo = () => {  uni.navigateTo({    url: '/pages/notes/new-memo'  })}
 
 // 打开搜索页面
 const goToSearch = () => {

@@ -13,13 +13,7 @@
                 "backgroundColor": "red"
             }
         },
-        {
-            "path": "pages/notes/new-memo",
-            "style": {
-                "navigationStyle": "custom",
-                "backgroundColor": "#FFF8F0"
-            }
-        },
+        {            "path": "pages/notes/new-memo",            "style": {                "navigationStyle": "custom",                "backgroundColor": "#FFF8F0"            }        },        {            "path": "pages/notes/new-memo-improved",            "style": {                "navigationStyle": "custom",                "backgroundColor": "#FFF8F0"            }        },
         {
             "path": "pages/notes/search",
             "style": {
