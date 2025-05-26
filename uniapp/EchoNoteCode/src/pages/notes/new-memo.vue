@@ -125,7 +125,43 @@
           ></uni-icons>
         </view>
       </view>
+      
+      <!-- 语音输入按钮 -->
+      <view class="voice-input-container">
+        <view 
+          class="voice-btn"
+          :class="{ 'voice-btn-active': isListening }"
+          @click="toggleVoiceInput"
+        >
+          <uni-icons 
+            type="mic" 
+            size="20" 
+            :color="isListening ? '#FFFFFF' : '#374151'"
+          ></uni-icons>
+          <text class="voice-btn-text" :style="{ color: isListening ? '#FFFFFF' : '#374151' }">
+            {{ isListening ? '正在倾听...' : '点击开始语音输入' }}
+          </text>
+        </view>
+      </view>
+      
       <view class="word-count">{{ content.length }}/5000</view>
+    </view>
+
+    <!-- 语音输入弹窗 -->
+    <view 
+      class="voice-modal" 
+      v-show="isListening"
+      @click="stopVoiceInput"
+    >
+      <view class="voice-modal-content" @click.stop>
+        <view class="voice-animation">
+          <view class="voice-wave"></view>
+          <view class="voice-wave"></view>
+          <view class="voice-wave"></view>
+        </view>
+        <text class="voice-text">倾听中...</text>
+        <text class="voice-tip">点击空白处停止录音</text>
+      </view>
     </view>
   </view>
 </template>
@@ -152,6 +188,9 @@ const isPreview = ref(false)
 const showStylePanel = ref(false)
 const currentTheme = ref('newsprint')
 
+// 语音输入状态
+const isListening = ref(false)
+
 // Markdown渲染
 const renderedContent = computed(() => {
   if (!content.value) return ''
@@ -175,7 +214,7 @@ const colorList = [
 
 // 主题选项
 const themes = [
-  { name: '默认', value: 'newsprint' },
+  { name: 'newsprint', value: 'newsprint' },
   { name: 'Github', value: 'github' },
   { name: 'Night', value: 'night' },
   { name: 'Whitey', value: 'whitey' },
@@ -277,6 +316,27 @@ const closeStylePanel = () => { showStylePanel.value = false }
 const togglePreview = () => { isPreview.value = !isPreview.value }
 const toggleFavorite = () => { isFavorite.value = !isFavorite.value; hasChanges.value = true }
 const togglePin = () => { isPinned.value = !isPinned.value; hasChanges.value = true }
+
+// 语音输入函数
+const toggleVoiceInput = () => {
+  if (isListening.value) {
+    stopVoiceInput()
+  } else {
+    startVoiceInput()
+  }
+}
+
+const startVoiceInput = () => {
+  isListening.value = true
+  // 这里可以添加实际的语音识别逻辑
+  uni.showToast({ title: '开始语音输入', icon: 'none' })
+}
+
+const stopVoiceInput = () => {
+  isListening.value = false
+  // 这里可以添加停止语音识别的逻辑
+  uni.showToast({ title: '语音输入结束', icon: 'none' })
+}
 
 const goBack = () => {
   if (hasChanges.value) {
@@ -540,12 +600,139 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   gap: 20px;
 }
 
+.voice-input-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  margin: 0 20px;
+}
+
+.voice-btn {
+  padding: 12px 20px;
+  border: 2px solid #E5E7EB;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  
+  &:hover {
+    background-color: #F3F4F6;
+    border-color: #D1D5DB;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.voice-btn-active {
+    background-color: #3B82F6;
+    border-color: #3B82F6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    
+    .voice-btn-icon {
+      color: #FFFFFF;
+    }
+  }
+}
+
+.voice-btn-icon {
+  font-size: 16px;
+  color: #374151;
+}
+
+.voice-btn-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
 .word-count {
   font-size: 12px;
   color: #9CA3AF;
   padding: 4px 8px;
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: 4px;
+}
+
+/* 语音输入样式 */
+.voice-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.voice-modal-content {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  min-width: 200px;
+}
+
+.voice-animation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+}
+
+.voice-wave {
+  width: 4px;
+  background-color: #3B82F6;
+  border-radius: 2px;
+  animation: voice-wave 1.2s ease-in-out infinite;
+}
+
+.voice-wave:nth-child(1) {
+  height: 20px;
+  animation-delay: 0s;
+}
+
+.voice-wave:nth-child(2) {
+  height: 30px;
+  animation-delay: 0.2s;
+}
+
+.voice-wave:nth-child(3) {
+  height: 25px;
+  animation-delay: 0.4s;
+}
+
+@keyframes voice-wave {
+  0%, 100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.5);
+  }
+}
+
+.voice-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.voice-tip {
+  font-size: 14px;
+  color: #9CA3AF;
+  text-align: center;
 }
 
 /* Markdown样式 */
