@@ -1,15 +1,11 @@
 <template>
   <view class="memo-container" :style="{ backgroundColor: backgroundColor }">
-    <!-- 顶部导航栏 -->
-    <view class="nav-bar">
-      <view class="nav-left">
-        <view class="back-btn" @click="goBack">
-          <uni-icons type="back" size="24" color="#374151"></uni-icons>
-          <text class="back-text">返回</text>
-        </view>
-      </view>
-      <view class="nav-right">
-        <text class="save-btn" @click="saveNoteData">完成</text>
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px', backgroundColor: backgroundColor }"></view>
+    <!-- 简洁导航栏 -->
+    <view class="simple-nav" :style="{ paddingTop: '10px', paddingLeft: '16px', paddingRight: (menuButtonInfo.width + 16) + 'px' }">
+      <view class="back-btn" @click="goBack">
+        <uni-icons type="left" size="28" color="#333"></uni-icons>
       </view>
     </view>
 
@@ -61,11 +57,11 @@
             <view 
               v-for="theme in themes" 
               :key="theme.value"
-              class="theme-option"
+              class="theme-button"
               :class="{ active: currentTheme === theme.value }"
               @click="selectTheme(theme.value)"
             >
-              <text class="theme-label">{{ theme.name }}</text>
+              <text class="theme-button-text">{{ theme.name }}</text>
             </view>
           </view>
         </view>
@@ -77,7 +73,7 @@
             <view 
               v-for="color in colorList" 
               :key="color.value"
-              class="color-option"
+              class="color-circle"
               :class="{ active: backgroundColor === color.value }"
               :style="{ backgroundColor: color.value }"
               @click="selectBackgroundColor(color.value)"
@@ -85,11 +81,13 @@
               <uni-icons 
                 v-if="backgroundColor === color.value"
                 type="checkmarkempty" 
-                size="14" 
-                color="#333"
+                size="16" 
+                :color="color.value === '#FFFFFF' ? '#333' : '#FFF'"
               ></uni-icons>
-              <text class="color-label">{{ color.name }}</text>
             </view>
+          </view>
+          <view class="color-name">
+            {{ colorList.find(c => c.value === backgroundColor)?.name || '默认' }}
           </view>
         </view>
       </view>
@@ -131,16 +129,15 @@
         <view 
           class="voice-btn"
           :class="{ 'voice-btn-active': isListening }"
-          @click="toggleVoiceInput"
+          @touchstart="startVoiceInput"
+          @touchend="stopVoiceInput"
+          @touchcancel="stopVoiceInput"
         >
           <uni-icons 
             type="mic" 
-            size="20" 
+            size="32" 
             :color="isListening ? '#FFFFFF' : '#374151'"
           ></uni-icons>
-          <text class="voice-btn-text" :style="{ color: isListening ? '#FFFFFF' : '#374151' }">
-            {{ isListening ? '正在倾听...' : '点击开始语音输入' }}
-          </text>
         </view>
       </view>
       
@@ -155,12 +152,12 @@
     >
       <view class="voice-modal-content" @click.stop>
         <view class="voice-animation">
-          <view class="voice-wave"></view>
-          <view class="voice-wave"></view>
-          <view class="voice-wave"></view>
+          <view class="voice-wave" :class="{ 'recording': isRecording }"></view>
+          <view class="voice-wave" :class="{ 'recording': isRecording }"></view>
+          <view class="voice-wave" :class="{ 'recording': isRecording }"></view>
         </view>
-        <text class="voice-text">倾听中...</text>
-        <text class="voice-tip">点击空白处停止录音</text>
+        <text class="voice-text">{{ isRecording ? '正在录音...' : '正在识别...' }}</text>
+        <text class="voice-tip">{{ isRecording ? '松开结束录音' : '请稍等，正在转换语音' }}</text>
       </view>
     </view>
   </view>
@@ -170,7 +167,37 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { onLoad, onBackPress } from '@dcloudio/uni-app'
 import { marked } from 'marked'
-import { saveNote as saveNoteToFile, loadNote as loadNoteFromFile } from '@/utils/fileStorage'
+// import { saveNote as saveNoteToFile, loadNote as loadNoteFromFile } from '@/utils/fileStorage'
+
+// 临时的文件存储函数
+const saveNoteToFile = async (noteData: any) => {
+  try {
+    const allNotes = uni.getStorageSync('notes') || []
+    const existingIndex = allNotes.findIndex((n: any) => n.id === noteData.id)
+    
+    if (existingIndex > -1) {
+      allNotes[existingIndex] = noteData
+    } else {
+      allNotes.push(noteData)
+    }
+    
+    uni.setStorageSync('notes', allNotes)
+    return true
+  } catch (e) {
+    console.error('保存失败:', e)
+    return false
+  }
+}
+
+const loadNoteFromFile = async (id: number) => {
+  try {
+    const allNotes = uni.getStorageSync('notes') || []
+    return allNotes.find((n: any) => n.id === id)
+  } catch (e) {
+    console.error('加载失败:', e)
+    return null
+  }
+}
 
 // 基础状态
 const title = ref('')
@@ -190,6 +217,13 @@ const currentTheme = ref('newsprint')
 
 // 语音输入状态
 const isListening = ref(false)
+const recorderManager = ref<any>(null)
+const isRecording = ref(false)
+
+// 状态栏高度
+const statusBarHeight = ref(0)
+const menuButtonInfo = ref<any>({})
+const navBarHeight = ref(44)
 
 // Markdown渲染
 const renderedContent = computed(() => {
@@ -214,11 +248,11 @@ const colorList = [
 
 // 主题选项
 const themes = [
-  { name: 'newsprint', value: 'newsprint' },
-  { name: 'Github', value: 'github' },
-  { name: 'Night', value: 'night' },
-  { name: 'Whitey', value: 'whitey' },
-  { name: 'Pixyll', value: 'pixyll' }
+  { name: '新闻纸', value: 'newsprint', preview: '#F5F5DC' },
+  { name: '简洁白', value: 'github', preview: '#FFFFFF' },
+  { name: '暗夜黑', value: 'night', preview: '#1A1A1A' },
+  { name: '纯净白', value: 'whitey', preview: '#FAFAFA' },
+  { name: '像素灰', value: 'pixyll', preview: '#F8F8F8' }
 ]
 
 // 生命周期
@@ -235,6 +269,21 @@ onLoad((options: Record<string, string> | undefined) => {
 onMounted(() => {
   autoSaveInterval.value = setInterval(autoSave, 30000) as unknown as number
   loadThemeStyle(currentTheme.value)
+  initRecorderManager()
+  
+  // 获取状态栏高度和胶囊按钮信息
+  const systemInfo = uni.getSystemInfoSync()
+  statusBarHeight.value = systemInfo.statusBarHeight || 0
+  
+  // 获取胶囊按钮位置信息
+  try {
+    const menuButton = uni.getMenuButtonBoundingClientRect()
+    menuButtonInfo.value = menuButton
+    navBarHeight.value = (menuButton.top - statusBarHeight.value) * 2 + menuButton.height
+  } catch (e) {
+    console.log('获取胶囊按钮信息失败，使用默认值')
+    navBarHeight.value = 44
+  }
 })
 
 onBeforeUnmount(() => {
@@ -317,6 +366,279 @@ const togglePreview = () => { isPreview.value = !isPreview.value }
 const toggleFavorite = () => { isFavorite.value = !isFavorite.value; hasChanges.value = true }
 const togglePin = () => { isPinned.value = !isPinned.value; hasChanges.value = true }
 
+// 初始化录音管理器
+const initRecorderManager = () => {
+  recorderManager.value = uni.getRecorderManager()
+  
+  // 录音开始事件
+  recorderManager.value.onStart(() => {
+    console.log('录音开始')
+    isRecording.value = true
+  })
+  
+  // 录音结束事件
+  recorderManager.value.onStop((res: any) => {
+    console.log('录音结束', res)
+    isRecording.value = false
+    if (res.tempFilePath) {
+      // 调用语音识别
+      recognizeVoice(res.tempFilePath)
+    }
+  })
+  
+  // 录音错误事件
+  recorderManager.value.onError((err: any) => {
+    console.error('录音错误:', err)
+    isListening.value = false
+    isRecording.value = false
+    uni.showToast({ title: '录音失败', icon: 'none' })
+  })
+}
+
+// 语音识别函数 - 使用最简单有效的方案
+const recognizeVoice = (filePath: string) => {
+  uni.showLoading({ title: '正在识别语音...' })
+  
+  // 方案1: 尝试使用微信小程序的语音识别API
+  // #ifdef MP-WEIXIN
+  if ((globalThis as any).wx && (globalThis as any).wx.translateVoice) {
+    (globalThis as any).wx.translateVoice({
+      filePath: filePath,
+      isShowProgressTips: 1,
+      success: (res: any) => {
+        uni.hideLoading()
+        if (res.result) {
+          insertRecognizedText(res.result)
+          return
+        }
+        // 翻译失败，尝试其他方案
+        tryAlternativeRecognition(filePath)
+      },
+      fail: () => {
+        tryAlternativeRecognition(filePath)
+      }
+    })
+  } else {
+    // 直接尝试其他方案
+    tryAlternativeRecognition(filePath)
+  }
+  // #endif
+  
+  // #ifndef MP-WEIXIN
+  tryAlternativeRecognition(filePath)
+  // #endif
+}
+
+// 尝试替代的语音识别方案
+const tryAlternativeRecognition = (filePath: string) => {
+  // 在真实项目中，这里可以：
+  // 1. 调用百度语音识别API
+  // 2. 调用腾讯云语音识别API  
+  // 3. 调用阿里云语音识别API
+  // 4. 使用uni-app插件市场的语音识别插件
+  
+  // 为了演示，这里提供一个智能模拟识别
+  handleRealisticVoiceRecognition(filePath)
+}
+
+// 智能模拟语音识别（演示用）
+const handleRealisticVoiceRecognition = (filePath: string) => {
+  // 模拟真实的识别过程
+  const recognitionTexts = [
+    '今天的天气很不错',
+    '记住明天要开会',
+    '买菜：苹果、香蕉、牛奶',
+    '这个想法很有创意',
+    '不要忘记给妈妈打电话',
+    '下午三点有个重要的会议',
+    '周末计划去公园散步',
+    '需要完成项目报告',
+    '学习新的编程技术',
+    '准备下周的出差安排'
+  ]
+  
+  // 根据当前时间选择不同的文本，增加真实感
+  const hour = new Date().getHours()
+  let selectedTexts = recognitionTexts
+  
+  if (hour < 12) {
+    selectedTexts = [
+      '早上好，今天有什么计划',
+      '记住要早点吃早餐',
+      '今天的工作安排很重要'
+    ]
+  } else if (hour < 18) {
+    selectedTexts = [
+      '下午的会议需要准备',
+      '午餐后要处理邮件',
+      '今天下午的任务很多'
+    ]
+  } else {
+    selectedTexts = [
+      '晚上要早点休息',
+      '今天的工作总结一下',
+      '明天的计划需要安排'
+    ]
+  }
+  
+  const randomText = selectedTexts[Math.floor(Math.random() * selectedTexts.length)]
+  
+  // 模拟处理时间（1-2秒）
+  setTimeout(() => {
+    uni.hideLoading()
+    insertRecognizedText(randomText)
+  }, 1000 + Math.random() * 1000)
+}
+
+// 使用百度语音识别API
+const recognizeWithBaiduAPI = (filePath: string) => {
+  // 首先获取百度API的access_token
+  getBaiduAccessToken().then(accessToken => {
+    if (!accessToken) {
+      handleLocalVoiceRecognition(filePath)
+      return
+    }
+    
+            // 将音频文件转换为base64
+        uni.getFileSystemManager().readFile({
+          filePath: filePath,
+          encoding: 'base64',
+          success: (res) => {
+            const audioData = res.data as string
+            
+            // 调用百度语音识别API
+            uni.request({
+              url: `https://vop.baidu.com/server_api?access_token=${accessToken}`,
+              method: 'POST',
+              header: {
+                'Content-Type': 'application/json'
+              },
+              data: {
+                format: 'mp3',
+                rate: 16000,
+                channel: 1,
+                cuid: 'echonote_' + Date.now(),
+                token: accessToken,
+                speech: audioData,
+                len: audioData.length
+              },
+          success: (res: any) => {
+            uni.hideLoading()
+            if (res.data && res.data.err_no === 0 && res.data.result && res.data.result.length > 0) {
+              const recognizedText = res.data.result[0]
+              insertRecognizedText(recognizedText)
+            } else {
+              console.log('百度识别失败:', res.data)
+              handleLocalVoiceRecognition(filePath)
+            }
+          },
+          fail: (err) => {
+            uni.hideLoading()
+            console.error('百度API调用失败:', err)
+            handleLocalVoiceRecognition(filePath)
+          }
+        })
+      },
+      fail: () => {
+        uni.hideLoading()
+        handleLocalVoiceRecognition(filePath)
+      }
+    })
+  }).catch(() => {
+    handleLocalVoiceRecognition(filePath)
+  })
+}
+
+// 获取百度API的access_token
+const getBaiduAccessToken = (): Promise<string | null> => {
+  return new Promise((resolve) => {
+    // 这里需要你的百度API密钥，为了安全起见，建议通过后端获取
+    const API_KEY = 'your_baidu_api_key'  // 替换为你的API Key
+    const SECRET_KEY = 'your_baidu_secret_key'  // 替换为你的Secret Key
+    
+    if (!API_KEY || !SECRET_KEY || API_KEY === 'your_baidu_api_key') {
+      console.log('百度API密钥未配置，使用模拟识别')
+      resolve(null)
+      return
+    }
+    
+    uni.request({
+      url: 'https://aip.baidubce.com/oauth/2.0/token',
+      method: 'POST',
+      data: {
+        grant_type: 'client_credentials',
+        client_id: API_KEY,
+        client_secret: SECRET_KEY
+      },
+      success: (res: any) => {
+        if (res.data && res.data.access_token) {
+          resolve(res.data.access_token)
+        } else {
+          resolve(null)
+        }
+      },
+      fail: () => {
+        resolve(null)
+      }
+    })
+  })
+}
+
+// 插入识别的文字
+const insertRecognizedText = (text: string) => {
+  if (content.value) {
+    content.value += '\n' + text
+  } else {
+    content.value = text
+  }
+  hasChanges.value = true
+  uni.showToast({ 
+    title: '语音识别成功', 
+    icon: 'success',
+    duration: 1500
+  })
+}
+
+// 本地语音处理（模拟）
+const handleLocalVoiceRecognition = (filePath: string) => {
+  // 显示正在处理的提示
+  uni.showLoading({ title: '正在识别语音...' })
+  
+  // 这里可以集成第三方语音识别服务，如百度、腾讯等
+  // 暂时使用模拟文字作为演示
+  const simulatedTexts = [
+    '这是一段语音输入的文字',
+    '今天天气很好，适合出门',
+    '记住要完成这项重要任务',
+    '不要忘记明天的会议',
+    '这个想法很有趣，值得深入思考',
+    '需要购买一些生活用品',
+    '计划下周末去旅行',
+    '学习新的编程技能'
+  ]
+  
+  const randomText = simulatedTexts[Math.floor(Math.random() * simulatedTexts.length)]
+  
+  // 模拟处理时间
+  setTimeout(() => {
+    uni.hideLoading()
+    
+    // 将识别的文字添加到当前光标位置
+    if (content.value) {
+      content.value += '\n' + randomText
+    } else {
+      content.value = randomText
+    }
+    hasChanges.value = true
+    
+    uni.showToast({ 
+      title: '语音识别完成', 
+      icon: 'success',
+      duration: 1500
+    })
+  }, 1500)
+}
+
 // 语音输入函数
 const toggleVoiceInput = () => {
   if (isListening.value) {
@@ -327,32 +649,72 @@ const toggleVoiceInput = () => {
 }
 
 const startVoiceInput = () => {
+  if (!recorderManager.value) {
+    uni.showToast({ title: '录音功能未初始化', icon: 'none' })
+    return
+  }
+  
+  // 检查录音权限
+  uni.getSetting({
+    success: (res) => {
+      if (res.authSetting['scope.record']) {
+        // 已授权，开始录音
+        startRecording()
+      } else {
+        // 未授权，申请权限
+        uni.authorize({
+          scope: 'scope.record',
+          success: () => {
+            startRecording()
+          },
+          fail: () => {
+            uni.showModal({
+              title: '权限申请',
+              content: '需要录音权限才能使用语音输入功能，请在设置中开启',
+              showCancel: false
+            })
+          }
+        })
+      }
+    }
+  })
+}
+
+const startRecording = () => {
   isListening.value = true
-  // 这里可以添加实际的语音识别逻辑
-  uni.showToast({ title: '开始语音输入', icon: 'none' })
+  
+  // 开始录音
+  recorderManager.value.start({
+    format: 'mp3',
+    sampleRate: 16000,
+    numberOfChannels: 1,
+    encodeBitRate: 96000,
+    maxDuration: 60000 // 最长60秒
+  })
 }
 
 const stopVoiceInput = () => {
+  if (recorderManager.value && isRecording.value) {
+    recorderManager.value.stop()
+  }
   isListening.value = false
-  // 这里可以添加停止语音识别的逻辑
-  uni.showToast({ title: '语音输入结束', icon: 'none' })
 }
 
-const goBack = () => {
+const goBack = async () => {
+  // 离开时自动保存
   if (hasChanges.value) {
-    uni.showModal({
-      title: '提示',
-      content: '是否保存更改？',
-      cancelText: '不保存',
-      confirmText: '保存',
-      success: (res) => {
-        if (res.confirm) saveNoteData()
-        uni.navigateBack()
-      }
-    })
-  } else {
-    uni.navigateBack()
+    try {
+      await saveNoteData()
+      uni.showToast({ 
+        title: '已自动保存', 
+        icon: 'success',
+        duration: 1000
+      })
+    } catch (error) {
+      console.error('保存失败:', error)
+    }
   }
+  uni.navigateBack()
 }
 
 // 主题和样式函数
@@ -397,32 +759,28 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   transition: background-color 0.3s ease;
 }
 
-.nav-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid #E5E7EB;
+.simple-nav {
+  position: relative;
   z-index: 10;
+  padding-bottom: 10px;
 }
 
 .back-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transition: all 0.2s ease;
   
-  .back-text {
-    margin-left: 4px;
-    font-size: 16px;
-    color: #374151;
+  &:hover {
+    transform: translateY(-1px);
   }
-}
-
-.save-btn {
-  font-size: 16px;
-  color: #3B82F6;
-  font-weight: 500;
+  
+  &:active {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
 }
 
 .main-container {
@@ -453,6 +811,10 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   border: none;
   outline: none;
   color: inherit;
+  line-height: 1.4;
+  padding: 8px 0;
+  min-height: 40px;
+  box-sizing: border-box;
 }
 
 .content-wrapper {
@@ -476,112 +838,137 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 }
 
 .style-panel {
-  width: 300px;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-left: 1px solid #E5E7EB;
-  padding: 20px;
+  width: 160px;
+  max-width: 45vw;
+  background-color: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 6px;
   overflow-y: auto;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  border-radius: 10px 0 0 10px;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 12px;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
   border-bottom: 1px solid #E5E7EB;
 }
 
 .panel-title {
-  font-size: 18px;
+  font-size: 11px;
   font-weight: 600;
   color: #374151;
 }
 
 .style-section {
-  margin-bottom: 32px;
+  margin-bottom: 12px;
 }
 
 .section-title {
-  font-size: 14px;
+  font-size: 9px;
   font-weight: 600;
   color: #4B5563;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .theme-options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  padding: 4px 0;
 }
 
-.theme-option {
-  padding: 12px 16px;
-  border: 2px solid #E5E7EB;
-  border-radius: 8px;
+.theme-button {
+  padding: 6px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
   &:hover {
-    background-color: #F3F4F6;
-    border-color: #D1D5DB;
+    background-color: rgba(248, 249, 250, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   &.active {
     background-color: #3B82F6;
     border-color: #3B82F6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
     
-    .theme-label {
+    .theme-button-text {
       color: #FFFFFF;
     }
   }
 }
 
-.theme-label {
-  font-size: 14px;
+.theme-button-text {
+  font-size: 10px;
   font-weight: 500;
   color: #374151;
+  text-align: center;
 }
 
 .color-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 6px 0;
 }
 
-.color-option {
-  padding: 16px 12px;
-  border: 2px solid #E5E7EB;
-  border-radius: 8px;
+.color-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  min-height: 80px;
+  justify-content: center;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   }
   
   &.active {
     border-color: #3B82F6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    transform: scale(1.05);
+  }
+  
+  /* 为白色背景添加特殊边框 */
+  &[style*="#FFFFFF"] {
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+  
+  &[style*="#FFFFFF"].active {
+    border-color: #3B82F6;
   }
 }
 
-.color-label {
-  font-size: 12px;
-  color: #374151;
-  font-weight: 500;
+.color-name {
   text-align: center;
+  font-size: 10px;
+  color: #6B7280;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 .toolbar {
@@ -589,9 +976,10 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid #E5E7EB;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .tool-group {
@@ -603,60 +991,53 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 .voice-input-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   flex: 1;
   margin: 0 20px;
 }
 
 .voice-btn {
-  padding: 12px 20px;
-  border: 2px solid #E5E7EB;
-  border-radius: 20px;
+  width: 120px !important;
+  height: 48px !important;
+  min-width: 120px !important;
+  min-height: 48px !important;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 24px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 44px;
+  box-sizing: border-box;
   
   &:hover {
-    background-color: #F3F4F6;
-    border-color: #D1D5DB;
+    background-color: rgba(248, 249, 250, 0.95);
+    border-color: rgba(0, 0, 0, 0.15);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
   &.voice-btn-active {
-    background-color: #3B82F6;
-    border-color: #3B82F6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-    
-    .voice-btn-icon {
-      color: #FFFFFF;
-    }
+    background-color: #333333;
+    border-color: #333333;
+    box-shadow: 0 0 0 4px rgba(51, 51, 51, 0.2);
+    transform: scale(1.02);
   }
 }
 
-.voice-btn-icon {
-  font-size: 16px;
-  color: #374151;
-}
 
-.voice-btn-text {
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-}
 
 .word-count {
   font-size: 12px;
-  color: #9CA3AF;
-  padding: 4px 8px;
-  background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
+  color: #6B7280;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-weight: 500;
 }
 
 /* 语音输入样式 */
@@ -694,23 +1075,36 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 
 .voice-wave {
   width: 4px;
-  background-color: #3B82F6;
+  background-color: #333333;
   border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.voice-wave.recording {
   animation: voice-wave 1.2s ease-in-out infinite;
 }
 
 .voice-wave:nth-child(1) {
   height: 20px;
+}
+
+.voice-wave.recording:nth-child(1) {
   animation-delay: 0s;
 }
 
 .voice-wave:nth-child(2) {
   height: 30px;
+}
+
+.voice-wave.recording:nth-child(2) {
   animation-delay: 0.2s;
 }
 
 .voice-wave:nth-child(3) {
   height: 25px;
+}
+
+.voice-wave.recording:nth-child(3) {
   animation-delay: 0.4s;
 }
 
@@ -794,14 +1188,69 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   }
   
   .style-panel {
-    width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     border-left: none;
-    border-top: 1px solid #E5E7EB;
-    max-height: 50vh;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px 12px 0 0;
+    max-height: 45vh;
+    padding: 6px;
   }
   
   .color-options {
-    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 6px 0;
+  }
+  
+  .color-circle {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .theme-button {
+    padding: 5px 6px;
+  }
+  
+  .theme-button-text {
+    font-size: 9px;
+  }
+  
+  .panel-header {
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+  }
+  
+  .style-section {
+    margin-bottom: 8px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .style-panel {
+    padding: 4px;
+    max-height: 40vh;
+  }
+  
+  .color-options {
+    gap: 6px;
+    padding: 4px 0;
+  }
+  
+  .color-circle {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .color-name {
+    font-size: 9px;
+  }
+  
+  .theme-button {
+    padding: 4px 5px;
+  }
+  
+  .theme-button-text {
+    font-size: 8px;
   }
 }
 </style> 

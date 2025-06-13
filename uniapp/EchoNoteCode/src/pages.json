@@ -13,57 +13,75 @@
                 "backgroundColor": "red"
             }
         },
-        {            "path": "pages/notes/new-memo",            "style": {                "navigationStyle": "custom",                "backgroundColor": "#FFF8F0"            }        },        {            "path": "pages/notes/new-memo-improved",            "style": {                "navigationStyle": "custom",                "backgroundColor": "#FFF8F0"            }        },
+        {
+            "path": "pages/notes/new-memo",
+            "style": {
+                "navigationStyle": "custom",
+                "backgroundColor": "#FFFFFF"
+            }
+        },
+        {
+            "path": "pages/notes/new-memo-improved",
+            "style": {
+                "navigationStyle": "custom",
+                "backgroundColor": "#FFFFFF"
+            }
+        },
         {
             "path": "pages/notes/search",
             "style": {
                 "navigationStyle": "custom",
-                "backgroundColor": "#FFF8F0"
+                "backgroundColor": "#FFFFFF"
             }
         },
         {
             "path": "pages/todo/todo",
             "style": {
                 "navigationBarTitleText": "待办清单",
-                "backgroundColor": "#FFF8F0"
+                "backgroundColor": "#FFFFFF"
+            }
+        },
+        {
+            "path": "pages/ai/ai-assistant",
+            "style": {
+                "navigationStyle": "custom",
+                "backgroundColor": "#667eea"
             }
         },
         {
             "path": "pages/profile/profile",
             "style": {
                 "navigationBarTitleText": "个人中心",
-                "backgroundColor": "#FFF8F0"
+                "backgroundColor": "#FFFFFF"
             }
         }
     ],
     "globalStyle": {
         "navigationBarTextStyle": "black",
         "navigationBarTitleText": "EchoNote",
-        "navigationBarBackgroundColor": "#FFEEDD",
-        "backgroundColor": "#FFF8F0"
+        "navigationBarBackgroundColor": "#FFFFFF",
+        "backgroundColor": "#FFFFFF"
     },
     "tabBar": {
-        "color": "#9CA3AF",
-        "selectedColor": "#FB923C",
+        "color": "#999999",
+        "selectedColor": "#3B82F6",
         "borderStyle": "white",
-        "backgroundColor": "#FFFBF3",
-        "custom": true,
+        "backgroundColor": "#FFFFFF",
+        "custom": false,
         "list": [{
                 "pagePath": "pages/notes/notes",
-                "iconPath": "static/notes-round-active.jpg",
-                "selectedIconPath": "static/notes-round-active.jpg",
-                "text": "文本"
+                "text": "备忘录"
+            },
+            {
+                "pagePath": "pages/ai/ai-assistant",
+                "text": "🤖 AI"
             },
             {
                 "pagePath": "pages/todo/todo",
-                "iconPath": "static/images/todo-round.png",
-                "selectedIconPath": "static/images/todo-round-active.png",
                 "text": "待办"
             },
             {
                 "pagePath": "pages/profile/profile",
-                "iconPath": "static/images/profile-round.png",
-                "selectedIconPath": "static/images/profile-round-active.png",
                 "text": "我的"
             }
         ]

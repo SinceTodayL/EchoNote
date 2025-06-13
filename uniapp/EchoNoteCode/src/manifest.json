@@ -55,10 +55,10 @@
             "urlCheck" : false
         },
         "usingComponents" : true,
-        "requiredPrivateInfos": ["getLocation"],
+        "requiredPrivateInfos": ["chooseLocation"],
         "permission": {
             "scope.record": {
-                "desc": "需要访问麦克风来进行语音识别"
+                "desc": "需要访问麦克风来进行语音识别和语音输入功能"
             }
         }
     },

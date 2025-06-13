@@ -1,9 +1,3 @@
-<template>
-  <App/>
-  <custom-tab-bar />
-</template>
-
-
 <script>
 export default {
   onLaunch: function () {
@@ -14,10 +8,8 @@ export default {
   },
   onHide: function () {
     console.log('App Hide')
-  },
-  components: { customTabBar }
+  }
 }
-import customTabBar from '@/components/custom-tab-bar/custom-tab-bar.vue'
 </script>
 
 <style>

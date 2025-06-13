@@ -1,19 +1,12 @@
 <template>
   <view class="notes-container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
     <!-- 顶部导航栏 -->
-    <view class="nav-bar">
-      <text class="nav-title">EchoNote</text>
-      <view class="search-bar">
-        <image 
-          src="/static/search.png" 
-          mode="aspectFit" 
-          class="search-icon"
-          @click="goToSearch"
-        />
-      </view>
-      <view class="nav-actions">
-        <uni-icons type="plus" size="24" @click="createTextMemo" />
-      </view>
+    <view class="nav-bar" :style="{ height: navBarHeight + 'px', paddingRight: (menuButtonInfo.width + 16) + 'px' }">
+      <uni-icons type="search" size="22" color="#666" @click="goToSearch" class="search-icon"/>
+      <image src="/static/EchoNote.png" mode="aspectFit" class="nav-logo" />
+      <view class="nav-placeholder"></view>
     </view>
 
     <!-- 笔记列表 -->
@@ -72,6 +65,9 @@ interface Note {
 const notes = ref<Note[]>([])
 const isRefreshing = ref(false)
 const popup = ref()
+const statusBarHeight = ref(0)
+const menuButtonInfo = ref<any>({})
+const navBarHeight = ref(44)
 
 // 长按计时器和状态
 const longPressTimer = ref<number | null>(null)
@@ -237,6 +233,20 @@ const onRefresh = () => {
 // 页面加载时获取数据
 onLoad(() => {
   loadNotes()
+  // 获取状态栏高度和胶囊按钮信息
+  const systemInfo = uni.getSystemInfoSync()
+  statusBarHeight.value = systemInfo.statusBarHeight || 0
+  
+  // 获取胶囊按钮位置信息
+  try {
+    const menuButton = uni.getMenuButtonBoundingClientRect()
+    menuButtonInfo.value = menuButton
+    // 计算导航栏高度：胶囊按钮高度 + 上下间距
+    navBarHeight.value = (menuButton.top - statusBarHeight.value) * 2 + menuButton.height
+  } catch (e) {
+    console.log('获取胶囊按钮信息失败，使用默认值')
+    navBarHeight.value = 44
+  }
 })
 
 // 每次显示页面时刷新数据
@@ -250,61 +260,54 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: linear-gradient(135deg, #fdf2e9 0%, #fae6c8 100%);
-  color: #5c5246;
-  padding: 16px;
+  background: #FFFFFF;
+  color: #333333;
+  padding: 0 16px 16px 16px;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+}
+
+.status-bar {
+  background: #FFFFFF;
+  width: 100%;
 }
 
 .nav-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  backdrop-filter: blur(8px); 
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 20px 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  margin-bottom: 0%;
+  background: #FFFFFF;
+  padding: 0 20px;
+  margin-bottom: 20px;
   position: sticky;
   top: 0;
   z-index: 50;
+  border-bottom: 1px solid #F0F0F0;
 }
 
-.nav-title {
-  font-size: 24px;
-  font-weight: 1000;
-  letter-spacing: 1px;
-  color: #b37a41;
-  text-shadow: 1px 1px 1px rgba(49, 46, 5, 0.2);
-}
-
-.search-bar {
-  flex: 1;
-  margin: 0 16px;
-  max-width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+.nav-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) scaleX(1.2); /* 只在X轴方向拉长20% */
+  height: 58px; /* 恢复原始高度 */
+  max-width: 288px; /* 240px × 1.2 = 288px */
 }
 
 .search-icon {
-  width: 50px;
-  height: 50px;
-  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  background: #F8F9FA;
+  transition: all 0.2s ease;
 }
 
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.search-icon:hover {
+  background: #E9ECEF;
 }
 
-.nav-actions uni-icons {
-  font-size: 24px;
-  color: #b37a41;
+.nav-placeholder {
+  width: 22px;
+  height: 22px;
 }
 
 .notes-list {
@@ -335,11 +338,12 @@ onShow(() => {
 }
 
 .note-item {
-  background-color: #F9FAFB;
+  background-color: #FFFFFF;
   padding: 16px;
   margin-bottom: 16px;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #F0F0F0;
 }
 
 .note-content {
@@ -380,12 +384,12 @@ onShow(() => {
   bottom: 120rpx;
   width: 56px;
   height: 56px;
-  background-color: #3B82F6;
+  background-color: #333333;
   border-radius: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 999;
   padding: 0;
   margin: 0;

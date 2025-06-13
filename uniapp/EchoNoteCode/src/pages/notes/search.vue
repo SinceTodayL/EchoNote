@@ -1,7 +1,9 @@
 <template>
   <view class="search-container">
+    <!-- 状态栏占位 -->
+    <view class="status-bar" :style="{ height: statusBarHeight + 'px' }"></view>
     <!-- 搜索栏 -->
-    <view class="search-bar">
+    <view class="search-bar" :style="{ height: navBarHeight + 'px', paddingRight: (menuButtonInfo.width + 16) + 'px' }">
       <view class="search-input-wrapper">
         <uni-icons type="search" size="20" color="#666"></uni-icons>
         <input 
@@ -49,7 +51,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getAllNotes } from '@/utils/fileStorage'
+// import { getAllNotes } from '@/utils/fileStorage'
+
+// 临时的获取所有笔记函数
+const getAllNotes = async () => {
+  try {
+    return uni.getStorageSync('notes') || []
+  } catch (e) {
+    console.error('获取笔记失败:', e)
+    return []
+  }
+}
 
 interface Note {
   id: number
@@ -65,6 +77,9 @@ interface Note {
 // 状态
 const searchText = ref('')
 const notes = ref<Note[]>([])
+const statusBarHeight = ref(0)
+const menuButtonInfo = ref<any>({})
+const navBarHeight = ref(44)
 
 // 过滤后的笔记列表
 const filteredNotes = computed(() => {
@@ -131,6 +146,20 @@ const openNote = (note: Note) => {
 // 页面加载时获取数据
 onLoad(async () => {
   await loadNotes()
+  // 获取状态栏高度和胶囊按钮信息
+  const systemInfo = uni.getSystemInfoSync()
+  statusBarHeight.value = systemInfo.statusBarHeight || 0
+  
+  // 获取胶囊按钮位置信息
+  try {
+    const menuButton = uni.getMenuButtonBoundingClientRect()
+    menuButtonInfo.value = menuButton
+    // 计算导航栏高度
+    navBarHeight.value = (menuButton.top - statusBarHeight.value) * 2 + menuButton.height
+  } catch (e) {
+    console.log('获取胶囊按钮信息失败，使用默认值')
+    navBarHeight.value = 44
+  }
 })
 </script>
 
@@ -139,23 +168,28 @@ onLoad(async () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #F9FAFB;
+  background-color: #FFFFFF;
+}
+
+.status-bar {
+  background-color: #FFFFFF;
+  width: 100%;
 }
 
 .search-bar {
-  padding: 8px 16px;
-  background-color: #fff;
+  padding: 0 16px;
+  background-color: #FFFFFF;
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #F0F0F0;
 }
 
 .search-input-wrapper {
   flex: 1;
   display: flex;
   align-items: center;
-  background-color: #F3F4F6;
+  background-color: #F8F9FA;
   padding: 8px 12px;
   border-radius: 8px;
   gap: 8px;
@@ -164,12 +198,12 @@ onLoad(async () => {
 .search-input {
   flex: 1;
   font-size: 16px;
-  color: #111827;
+  color: #333333;
 }
 
 .cancel-btn {
   font-size: 16px;
-  color: #3B82F6;
+  color: #333333;
 }
 
 .search-results {
@@ -185,11 +219,12 @@ onLoad(async () => {
 }
 
 .note-item {
-  background-color: #fff;
+  background-color: #FFFFFF;
   padding: 16px;
   margin-bottom: 16px;
   border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #F0F0F0;
 }
 
 .note-content {
