@@ -13,14 +13,19 @@
     <view class="main-container">
       <!-- 编辑区域 -->
       <view class="edit-area" :class="[currentTheme, { 'preview-mode': isPreview }]">
-        <input
+        <textarea
           class="title-input"
-          type="text"
           v-model="title"
           placeholder="标题"
-          :maxlength="50"
+          :maxlength="100"
           @input="onTitleInput"
+          auto-height
+          :show-confirm-bar="false"
         />
+        <!-- 编辑最新时间 -->
+        <view class="edit-time">
+          <text class="edit-time-text">{{ lastEditTime || '刚刚' }}</text>
+        </view>
         <view class="content-wrapper">
           <textarea
             v-show="!isPreview"
@@ -30,6 +35,19 @@
             :maxlength="5000"
             @input="onContentInput"
           />
+          <!-- AI问答提示框 -->
+          <view 
+            v-show="showAIPrompt && !isPreview" 
+            class="ai-prompt-box"
+            :style="{ 
+              top: promptPosition.top + 'px', 
+              left: promptPosition.left + 'px' 
+            }"
+            @click="askAI"
+          >
+            <uni-icons type="chat" size="16" color="#FFFFFF"></uni-icons>
+            <text class="ai-prompt-text">AI Help!</text>
+          </view>
           <view 
             v-show="isPreview"
             class="markdown-preview markdown-body"
@@ -167,7 +185,8 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { onLoad, onBackPress } from '@dcloudio/uni-app'
 import { marked } from 'marked'
-// import { saveNote as saveNoteToFile, loadNote as loadNoteFromFile } from '@/utils/fileStorage'
+import { sendAIMessage } from '@/utils/aiService'
+
 
 // 临时的文件存储函数
 const saveNoteToFile = async (noteData: any) => {
@@ -206,6 +225,7 @@ const noteId = ref<number | null>(null)
 const hasChanges = ref(false)
 const lastSaveTime = ref(Date.now())
 const autoSaveInterval = ref<number | null>(null)
+const updateTime = ref<number | null>(null)
 
 // 样式和UI状态
 const backgroundColor = ref('#FFFFFF')
@@ -219,6 +239,11 @@ const currentTheme = ref('newsprint')
 const isListening = ref(false)
 const recorderManager = ref<any>(null)
 const isRecording = ref(false)
+
+// AI问答状态
+const showAIPrompt = ref(false)
+const isAIThinking = ref(false)
+const promptPosition = ref({ top: 0, left: 0 })
 
 // 状态栏高度
 const statusBarHeight = ref(0)
@@ -236,9 +261,50 @@ const renderedContent = computed(() => {
   }
 })
 
+// 格式化编辑时间
+const lastEditTime = computed(() => {
+  if (!updateTime.value) {
+    return new Date().toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+  
+  const date = new Date(updateTime.value)
+  const now = new Date()
+  const diffTime = now.getTime() - date.getTime()
+  const diffMinutes = Math.floor(diffTime / (1000 * 60))
+  const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (diffMinutes < 1) {
+    return '刚刚'
+  } else if (diffMinutes < 60) {
+    return diffMinutes + '分钟前'
+  } else if (diffHours < 24) {
+    return diffHours + '小时前'
+  } else if (diffDays === 1) {
+    return '昨天 ' + date.toLocaleTimeString('zh-CN', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
+  } else if (diffDays < 7) {
+    return diffDays + '天前'
+  } else {
+    return date.toLocaleDateString('zh-CN', { 
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
+  }
+})
+
 // 颜色选项
 const colorList = [
-  { name: '默认', value: '#FFFFFF' },
+  { name: '纯白', value: '#FFFFFF' },
   { name: '暖黄', value: '#FFF7E6' },
   { name: '粉红', value: '#FFF1F0' },
   { name: '薄荷', value: '#F6FFED' },
@@ -248,11 +314,10 @@ const colorList = [
 
 // 主题选项
 const themes = [
-  { name: '新闻纸', value: 'newsprint', preview: '#F5F5DC' },
-  { name: '简洁白', value: 'github', preview: '#FFFFFF' },
-  { name: '暗夜黑', value: 'night', preview: '#1A1A1A' },
-  { name: '纯净白', value: 'whitey', preview: '#FAFAFA' },
-  { name: '像素灰', value: 'pixyll', preview: '#F8F8F8' }
+  { name: 'Newsprint', value: 'newsprint', preview: '#F5F5DC' },
+  { name: 'Github', value: 'github', preview: '#FFFFFF' },
+  { name: 'Whitey', value: 'whitey', preview: '#FAFAFA' },
+  { name: 'Pixyll', value: 'pixyll', preview: '#F8F8F8' }
 ]
 
 // 生命周期
@@ -260,6 +325,9 @@ onLoad((options: Record<string, string> | undefined) => {
   if (options?.id) {
     noteId.value = parseInt(options.id)
     loadNoteData()
+  } else {
+    // 新建笔记时设置初始编辑时间
+    updateTime.value = Date.now()
   }
   if (options?.content) {
     content.value = decodeURIComponent(options.content)
@@ -311,6 +379,7 @@ const loadNoteData = async () => {
       backgroundColor.value = note.backgroundColor || '#FFFFFF'
       isFavorite.value = note.isFavorite || false
       isPinned.value = note.isPinned || false
+      updateTime.value = note.updateTime || note.createTime || Date.now()
     }
   } catch (e) {
     console.error('加载笔记失败:', e)
@@ -341,6 +410,7 @@ const saveNoteData = async () => {
     if (success) {
       if (!noteId.value) noteId.value = now
       lastSaveTime.value = now
+      updateTime.value = now
       hasChanges.value = false
       uni.showToast({ title: '已保存', icon: 'success' })
     }
@@ -357,14 +427,121 @@ const autoSave = () => {
 }
 
 // UI交互函数
-const onTitleInput = () => { hasChanges.value = true }
-const onContentInput = () => { hasChanges.value = true }
+const onTitleInput = () => { 
+  hasChanges.value = true
+  updateTime.value = Date.now()
+}
+const onContentInput = (event: any) => { 
+  hasChanges.value = true 
+  updateTime.value = Date.now()
+  
+  // 检测是否输入了"？"字符
+  if (content.value.endsWith('？') || content.value.endsWith('?')) {
+    showAIPrompt.value = true
+    
+    // 计算提示框位置（简化版本，基于文本长度估算）
+    calculatePromptPosition()
+    
+    // 3秒后自动隐藏提示框
+    setTimeout(() => {
+      showAIPrompt.value = false
+    }, 3000)
+  } else {
+    showAIPrompt.value = false
+  }
+}
+
+// 计算提示框位置
+const calculatePromptPosition = () => {
+  // 简化的位置计算：基于文本内容估算位置
+  const lines = content.value.split('\n')
+  const currentLineIndex = lines.length - 1
+  const currentLine = lines[currentLineIndex] || ''
+  
+  // 估算位置（这是一个简化的实现）
+  const lineHeight = 24 // 假设行高为24px
+  const charWidth = 8   // 假设字符宽度为8px
+  
+  const top = currentLineIndex * lineHeight + 30 // 30px是标题区域的大概高度
+  const left = Math.min(currentLine.length * charWidth, 200) // 限制最大左边距
+  
+  promptPosition.value = { 
+    top: Math.max(top, 50), // 确保不会太靠上
+    left: Math.max(left, 20) // 确保不会太靠左
+  }
+}
 
 const toggleStylePanel = () => { showStylePanel.value = !showStylePanel.value }
 const closeStylePanel = () => { showStylePanel.value = false }
 const togglePreview = () => { isPreview.value = !isPreview.value }
 const toggleFavorite = () => { isFavorite.value = !isFavorite.value; hasChanges.value = true }
 const togglePin = () => { isPinned.value = !isPinned.value; hasChanges.value = true }
+
+// AI问答功能
+const askAI = async () => {
+  if (isAIThinking.value) return
+  
+  showAIPrompt.value = false
+  isAIThinking.value = true
+  
+  try {
+    // 提取问题内容（从最后一个问号往前找到合适的起始位置）
+    const questionText = extractQuestion()
+    if (!questionText) {
+      uni.showToast({ title: '未找到问题内容', icon: 'none' })
+      return
+    }
+    
+    uni.showLoading({ title: 'AI思考中...' })
+    
+    // 调用AI服务，使用优化的系统提示词
+    const systemPrompt = `你是一个简洁的问答助手。请直接回答问题，只返回答案内容，不要包含任何解释、前缀、后缀或格式标记。回答要简洁明了，只用纯文本和必要的标点符号。
+
+问题：${questionText}`
+    const aiResponse = await sendAIMessage(systemPrompt)
+    
+    uni.hideLoading()
+    
+    // 将AI回答插入到内容中，紧跟在问题后面
+    const cleanResponse = aiResponse.trim()
+    content.value += `\n${cleanResponse}`
+    hasChanges.value = true
+    updateTime.value = Date.now()
+    
+    uni.showToast({ title: 'AI回答已添加', icon: 'success' })
+    
+  } catch (error) {
+    uni.hideLoading()
+    console.error('AI回答失败:', error)
+    uni.showToast({ title: 'AI服务暂时不可用', icon: 'none' })
+  } finally {
+    isAIThinking.value = false
+  }
+}
+
+// 提取问题内容
+const extractQuestion = (): string => {
+  const text = content.value.trim()
+  if (!text) return ''
+  
+  // 找到最后一个问号的位置
+  const lastQuestionIndex = Math.max(text.lastIndexOf('？'), text.lastIndexOf('?'))
+  if (lastQuestionIndex === -1) return ''
+  
+  // 从问号往前找到合适的起始位置（句号、换行符或开头）
+  let startIndex = 0
+  for (let i = lastQuestionIndex - 1; i >= 0; i--) {
+    const char = text[i]
+    if (char === '。' || char === '.' || char === '\n' || char === '！' || char === '!') {
+      startIndex = i + 1
+      break
+    }
+  }
+  
+  // 提取问题文本并清理
+  const question = text.substring(startIndex, lastQuestionIndex + 1).trim()
+  return question
+}
 
 // 初始化录音管理器
 const initRecorderManager = () => {
@@ -431,12 +608,6 @@ const recognizeVoice = (filePath: string) => {
 
 // 尝试替代的语音识别方案
 const tryAlternativeRecognition = (filePath: string) => {
-  // 在真实项目中，这里可以：
-  // 1. 调用百度语音识别API
-  // 2. 调用腾讯云语音识别API  
-  // 3. 调用阿里云语音识别API
-  // 4. 使用uni-app插件市场的语音识别插件
-  
   // 为了演示，这里提供一个智能模拟识别
   handleRealisticVoiceRecognition(filePath)
 }
@@ -461,26 +632,11 @@ const handleRealisticVoiceRecognition = (filePath: string) => {
   const hour = new Date().getHours()
   let selectedTexts = recognitionTexts
   
-  if (hour < 12) {
-    selectedTexts = [
-      '早上好，今天有什么计划',
-      '记住要早点吃早餐',
-      '今天的工作安排很重要'
-    ]
-  } else if (hour < 18) {
-    selectedTexts = [
-      '下午的会议需要准备',
-      '午餐后要处理邮件',
-      '今天下午的任务很多'
-    ]
-  } else {
-    selectedTexts = [
-      '晚上要早点休息',
-      '今天的工作总结一下',
-      '明天的计划需要安排'
-    ]
-  }
   
+  selectedTexts = [
+      "进程管理  文件管理  内存管理"
+    ]
+ 
   const randomText = selectedTexts[Math.floor(Math.random() * selectedTexts.length)]
   
   // 模拟处理时间（1-2秒）
@@ -490,99 +646,7 @@ const handleRealisticVoiceRecognition = (filePath: string) => {
   }, 1000 + Math.random() * 1000)
 }
 
-// 使用百度语音识别API
-const recognizeWithBaiduAPI = (filePath: string) => {
-  // 首先获取百度API的access_token
-  getBaiduAccessToken().then(accessToken => {
-    if (!accessToken) {
-      handleLocalVoiceRecognition(filePath)
-      return
-    }
-    
-            // 将音频文件转换为base64
-        uni.getFileSystemManager().readFile({
-          filePath: filePath,
-          encoding: 'base64',
-          success: (res) => {
-            const audioData = res.data as string
-            
-            // 调用百度语音识别API
-            uni.request({
-              url: `https://vop.baidu.com/server_api?access_token=${accessToken}`,
-              method: 'POST',
-              header: {
-                'Content-Type': 'application/json'
-              },
-              data: {
-                format: 'mp3',
-                rate: 16000,
-                channel: 1,
-                cuid: 'echonote_' + Date.now(),
-                token: accessToken,
-                speech: audioData,
-                len: audioData.length
-              },
-          success: (res: any) => {
-            uni.hideLoading()
-            if (res.data && res.data.err_no === 0 && res.data.result && res.data.result.length > 0) {
-              const recognizedText = res.data.result[0]
-              insertRecognizedText(recognizedText)
-            } else {
-              console.log('百度识别失败:', res.data)
-              handleLocalVoiceRecognition(filePath)
-            }
-          },
-          fail: (err) => {
-            uni.hideLoading()
-            console.error('百度API调用失败:', err)
-            handleLocalVoiceRecognition(filePath)
-          }
-        })
-      },
-      fail: () => {
-        uni.hideLoading()
-        handleLocalVoiceRecognition(filePath)
-      }
-    })
-  }).catch(() => {
-    handleLocalVoiceRecognition(filePath)
-  })
-}
 
-// 获取百度API的access_token
-const getBaiduAccessToken = (): Promise<string | null> => {
-  return new Promise((resolve) => {
-    // 这里需要你的百度API密钥，为了安全起见，建议通过后端获取
-    const API_KEY = 'your_baidu_api_key'  // 替换为你的API Key
-    const SECRET_KEY = 'your_baidu_secret_key'  // 替换为你的Secret Key
-    
-    if (!API_KEY || !SECRET_KEY || API_KEY === 'your_baidu_api_key') {
-      console.log('百度API密钥未配置，使用模拟识别')
-      resolve(null)
-      return
-    }
-    
-    uni.request({
-      url: 'https://aip.baidubce.com/oauth/2.0/token',
-      method: 'POST',
-      data: {
-        grant_type: 'client_credentials',
-        client_id: API_KEY,
-        client_secret: SECRET_KEY
-      },
-      success: (res: any) => {
-        if (res.data && res.data.access_token) {
-          resolve(res.data.access_token)
-        } else {
-          resolve(null)
-        }
-      },
-      fail: () => {
-        resolve(null)
-      }
-    })
-  })
-}
 
 // 插入识别的文字
 const insertRecognizedText = (text: string) => {
@@ -639,14 +703,7 @@ const handleLocalVoiceRecognition = (filePath: string) => {
   }, 1500)
 }
 
-// 语音输入函数
-const toggleVoiceInput = () => {
-  if (isListening.value) {
-    stopVoiceInput()
-  } else {
-    startVoiceInput()
-  }
-}
+
 
 const startVoiceInput = () => {
   if (!recorderManager.value) {
@@ -731,6 +788,7 @@ const selectBackgroundColor = (color: string) => {
 
 const loadThemeStyle = (themeName: string) => {
   try {
+    // #ifdef H5
     // 移除旧主题
     const oldTheme = document.querySelector('link[data-theme]')
     if (oldTheme) oldTheme.remove()
@@ -738,9 +796,15 @@ const loadThemeStyle = (themeName: string) => {
     // 添加新主题
     const link = document.createElement('link')
     link.rel = 'stylesheet'
-    link.href = `/src/static/css/${themeName}.css`
+    link.href = `/static/css/${themeName}.css`
     link.setAttribute('data-theme', 'true')
     document.head.appendChild(link)
+    console.log('主题CSS加载:', `/static/css/${themeName}.css`)
+    // #endif
+    
+    // #ifndef H5
+    console.log('小程序端暂不支持动态CSS加载，主题:', themeName)
+    // #endif
   } catch (e) {
     console.error('加载主题失败:', e)
   }
@@ -805,20 +869,37 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 .title-input {
   font-size: 24px;
   font-weight: bold;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   width: 100%;
   background: transparent;
   border: none;
   outline: none;
   color: inherit;
-  line-height: 1.4;
+  line-height: 1.3;
   padding: 8px 0;
-  min-height: 40px;
+  min-height: 32px;
+  max-height: 120px;
   box-sizing: border-box;
+  resize: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.edit-time {
+  margin-bottom: 16px;
+  padding-left: 2px;
+}
+
+.edit-time-text {
+  font-size: 12px;
+  color: #999999;
+  opacity: 1;
+  font-weight: 400;
 }
 
 .content-wrapper {
   height: calc(100% - 60px);
+  position: relative;
 }
 
 .content-input,
@@ -859,7 +940,7 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 }
 
 .panel-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: #374151;
 }
@@ -869,7 +950,7 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 }
 
 .section-title {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   color: #4B5563;
   margin-bottom: 4px;
@@ -878,14 +959,14 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 }
 
 .theme-options {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 4px;
   padding: 4px 0;
 }
 
 .theme-button {
-  padding: 6px 8px;
+  padding: 6px 2px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 6px;
   cursor: pointer;
@@ -895,6 +976,7 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 32px;
   
   &:hover {
     background-color: rgba(248, 249, 250, 0.95);
@@ -916,9 +998,10 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 
 .theme-button-text {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
   text-align: center;
+  line-height: 1.2;
 }
 
 .color-options {
@@ -965,7 +1048,7 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
 
 .color-name {
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
   color: #6B7280;
   margin-top: 4px;
   font-weight: 500;
@@ -1027,8 +1110,6 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   }
 }
 
-
-
 .word-count {
   font-size: 12px;
   color: #6B7280;
@@ -1038,6 +1119,55 @@ watch(currentTheme, (newTheme) => { loadThemeStyle(newTheme) })
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   font-weight: 500;
+}
+
+/* AI问答提示框样式 */
+.ai-prompt-box {
+  position: absolute;
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  animation: ai-prompt-bounce 0.5s ease-out;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ai-prompt-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.ai-prompt-box:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.ai-prompt-text {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@keyframes ai-prompt-bounce {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* 语音输入样式 */

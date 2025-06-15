@@ -289,9 +289,9 @@ onShow(() => {
 .nav-logo {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%) scaleX(1.2); /* 只在X轴方向拉长20% */
+  transform: translateX(-50%) scaleX(1.08); /* X轴方向拉长8% (原来1.2减少10%: 1.2 × 0.9 = 1.08) */
   height: 58px; /* 恢复原始高度 */
-  max-width: 288px; /* 240px × 1.2 = 288px */
+  max-width: 259px; /* 288px × 0.9 = 259px */
 }
 
 .search-icon {

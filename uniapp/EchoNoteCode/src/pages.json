@@ -13,7 +13,7 @@
                 "backgroundColor": "red"
             }
         },
-        {
+                {
             "path": "pages/notes/new-memo",
             "style": {
                 "navigationStyle": "custom",
@@ -37,7 +37,7 @@
         {
             "path": "pages/todo/todo",
             "style": {
-                "navigationBarTitleText": "待办清单",
+                "navigationStyle": "custom",
                 "backgroundColor": "#FFFFFF"
             }
         },
@@ -51,7 +51,7 @@
         {
             "path": "pages/profile/profile",
             "style": {
-                "navigationBarTitleText": "个人中心",
+                "navigationStyle": "custom",
                 "backgroundColor": "#FFFFFF"
             }
         }
@@ -70,19 +70,27 @@
         "custom": false,
         "list": [{
                 "pagePath": "pages/notes/notes",
-                "text": "备忘录"
+                "text": "备忘录",
+                "iconPath": "static/notes.png",
+                "selectedIconPath": "static/notes.png"
             },
             {
                 "pagePath": "pages/ai/ai-assistant",
-                "text": "🤖 AI"
+                "text": "AI 助手",
+                "iconPath": "static/AI.png",
+                "selectedIconPath": "static/AI.png"
             },
             {
                 "pagePath": "pages/todo/todo",
-                "text": "待办"
+                "text": "待办",
+                "iconPath": "static/todo.png",
+                "selectedIconPath": "static/todo.png"
             },
             {
                 "pagePath": "pages/profile/profile",
-                "text": "我的"
+                "text": "我的",
+                "iconPath": "static/self.png",
+                "selectedIconPath": "static/self.png"
             }
         ]
     }

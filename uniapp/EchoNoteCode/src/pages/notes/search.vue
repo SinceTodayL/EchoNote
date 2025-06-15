@@ -26,7 +26,11 @@
     </view>
 
     <!-- 搜索结果 -->
-    <scroll-view scroll-y="true" class="search-results">
+    <scroll-view 
+      scroll-y="true" 
+      class="search-results"
+      :style="{ height: 'calc(100vh - ' + (statusBarHeight + navBarHeight) + 'px)' }"
+    >
       <view v-if="searchText && !filteredNotes.length" class="empty-state">
         <text>未找到相关备忘录</text>
       </view>
@@ -51,7 +55,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-// import { getAllNotes } from '@/utils/fileStorage'
 
 // 临时的获取所有笔记函数
 const getAllNotes = async () => {
@@ -169,6 +172,7 @@ onLoad(async () => {
   flex-direction: column;
   height: 100vh;
   background-color: #FFFFFF;
+  position: relative;
 }
 
 .status-bar {
@@ -183,6 +187,9 @@ onLoad(async () => {
   align-items: center;
   gap: 12px;
   border-bottom: 1px solid #F0F0F0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .search-input-wrapper {
@@ -209,6 +216,8 @@ onLoad(async () => {
 .search-results {
   flex: 1;
   padding: 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .empty-state {

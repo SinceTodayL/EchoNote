@@ -1,6 +1,70 @@
 # EchoNote
 
-一款融合语音识别与 AI 智能分析的智能备忘录，让你的想法无需动手，随时记录、智能归类。
+**2025年春《用户交互技术》期末课程项目**
+
+
+
+## 项目简介
+
+融合语音识别、AI对话助手与笔记管理于一体，实现语音快速记录、智能内容问答，打造全新的数字化思维记录体验。
+
+
+
+## 项目展示
+
+
+
+
+
+## 项目代码目录：
+
+```py
+src/
+│
+├── App.vue                           # 应用主组件
+├── main.js                           # 应用入口文件
+├── manifest.json                     # 应用配置清单
+├── pages.json                        # 页面路由配置
+├── shime-uni.d.ts                    # TypeScript 类型声明
+├── uni.scss                          # 全局样式文件
+│
+├── pages/                           # 页面文件夹
+│   ├── ai/                          # AI助手模块
+│   │   └── ai-assistant.vue         # AI助手页面
+│   │
+│   ├── notes/                       # 笔记模块
+│   │   ├── new-memo.vue             # 笔记编辑页面 
+│   │   ├── notes.vue                # 笔记列表页面
+│   │   └── search.vue               # 笔记搜索页面
+│   │
+│   ├── profile/                     # 个人中心模块
+│   │   └── profile.vue              
+│   │
+│   └── todo/                        # 待办事项模块
+│       └── todo.vue                
+│
+├── static/                          # 静态资源
+│   ├── AI.png                       
+│   ├── EchoNote.png                 
+│   ├── notes.png                    
+│   ├── profile.jpg                 
+│   ├── self.png                     
+│   ├── todo.png                     
+│   │
+│   └── css/                         # 样式主题
+│       ├── github.css               # GitHub主题
+│       ├── newsprint.css            # 新闻纸主题
+│       ├── night.css                # 夜间主题
+│       ├── pixyll.css               # Pixyll主题
+│       └── whitey.css               # 白色主题
+│
+└── utils/                           # 工具函数文件夹
+    ├── aiCommandProcessor.ts        # AI命令处理
+    ├── aiConfig.ts                  # AI配置文件
+    ├── aiService.ts                 # AI服务接口
+    ├── dataService.ts               # 数据服务接口
+    └── fileStorage.ts               # 文件存储工具
+```
 
 
 
@@ -59,4 +123,24 @@
 界面设计：去掉“语音输入”按钮的文字，直接用一个图标表示
 
 尝试添加 AI 助手界面
+
+
+
+>6.14
+
+AI 助手界面优化与实现，参照 ChatGPT 安卓端界面，尝试接入`Qwen`大模型
+
+待办界面更新：优化 UI 设计，任务可按照时间分块，同时可查看“已完成任务”
+
+
+
+>6.15
+
+实现功能：AI 助手可以随时正常回答用户的问题
+
+AI 助手可以通过接口访问笔记页面、读入笔记内容进行智能内容总结
+
+AI 记忆用户的所有笔记内容、待办内容，用户可随时通过AI查找笔记细节内容
+
+AI 助手通过自定义接口添加待办事项，读入内容并实现相应功能
 

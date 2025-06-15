@@ -1,11 +1,15 @@
 <template>
   <view class="profile-container">
+    <!-- 自定义导航栏 -->
+    <view class="custom-navbar">
+      <text class="navbar-title">个人中心</text>
+    </view>
     <!-- 用户信息卡片 -->
     <view class="user-card">
-      <image class="avatar" src="/static/images/default-avatar.png" mode="aspectFill" />
+      <image class="avatar" src="/static/profile.jpg" mode="aspectFill" />
       <view class="user-info">
-        <text class="username">用户名</text>
-        <text class="user-id">ID: 12345678</text>
+        <text class="username">SinceToday</text>
+        <text class="user-id">ID: 2352471</text>
       </view>
     </view>
 
@@ -58,7 +62,7 @@
 
     <!-- 版本信息 -->
     <view class="version-info">
-      <text>当前版本 1.0.0</text>
+      <text>当前版本 1.0.2</text>
     </view>
   </view>
 </template>
@@ -66,6 +70,7 @@
 <script setup lang="ts">
 const handleFeatureClick = (feature: string) => {
   // TODO: 实现各功能的跳转逻辑
+  // 本项目暂时不做后端，因此暂不考虑实现这一部分
   console.log('Clicked feature:', feature)
 }
 </script>
@@ -75,6 +80,23 @@ const handleFeatureClick = (feature: string) => {
   min-height: 100vh;
   background-color: #f8f8f8;
   padding-bottom: 40rpx;
+}
+
+/* 自定义导航栏 */
+.custom-navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 88rpx;
+  background-color: #ffffff;
+  padding-top: 64rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.navbar-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 
 .user-card {

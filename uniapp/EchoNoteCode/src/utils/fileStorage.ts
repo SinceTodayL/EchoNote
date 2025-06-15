@@ -1,73 +1,84 @@
-// 笔记类型定义
-interface Note {
+/**
+ * 文件存储工具
+ * 提供笔记的本地存储功能
+ */
+
+export interface Note {
   id: number
   title: string
   content: string
-  backgroundColor: string
-  isFavorite: boolean
-  isPinned: boolean
   createTime: number
   updateTime: number
+  backgroundColor?: string
+  isFavorite?: boolean
+  isPinned?: boolean
 }
 
-// 从 localStorage 迁移数据（暂时不操作）
-export const migrateFromLocalStorage = async () => {
-  // 暂时不进行迁移操作，直接返回成功
-  return true
-}
-
-// 保存笔记
-export const saveNote = async (note: Note) => {
+/**
+ * 保存笔记到本地存储
+ * @param note 笔记数据
+ * @returns 是否保存成功
+ */
+export const saveNote = async (note: Note): Promise<boolean> => {
   try {
-    const notes = uni.getStorageSync('notes') || []
-    const existingIndex = notes.findIndex((n: any) => n.id === note.id)
+    const allNotes = uni.getStorageSync('notes') || []
+    const existingIndex = allNotes.findIndex((n: Note) => n.id === note.id)
     
     if (existingIndex > -1) {
-      notes[existingIndex] = note
+      allNotes[existingIndex] = note
     } else {
-      notes.unshift(note)
+      allNotes.push(note)
     }
     
-    uni.setStorageSync('notes', notes)
+    uni.setStorageSync('notes', allNotes)
     return true
-  } catch (error) {
-    console.error('保存笔记时出错:', error)
+  } catch (e) {
+    console.error('保存笔记失败:', e)
     return false
   }
 }
 
-// 读取笔记
-export const loadNote = async (id: number) => {
+/**
+ * 从本地存储加载笔记
+ * @param id 笔记ID
+ * @returns 笔记数据或null
+ */
+export const loadNote = async (id: number): Promise<Note | null> => {
   try {
-    const notes = uni.getStorageSync('notes') || []
-    const note = notes.find((n: any) => n.id === id)
-    return note || null
-  } catch (error) {
-    console.error('读取笔记时出错:', error)
+    const allNotes = uni.getStorageSync('notes') || []
+    return allNotes.find((n: Note) => n.id === id) || null
+  } catch (e) {
+    console.error('加载笔记失败:', e)
     return null
   }
 }
 
-// 删除笔记
-export const deleteNote = async (id: number) => {
+/**
+ * 获取所有笔记
+ * @returns 所有笔记数组
+ */
+export const getAllNotes = async (): Promise<Note[]> => {
   try {
-    const notes = uni.getStorageSync('notes') || []
-    const newNotes = notes.filter((n: any) => n.id !== id)
-    uni.setStorageSync('notes', newNotes)
-    return true
-  } catch (error) {
-    console.error('删除笔记时出错:', error)
-    return false
-  }
-}
-
-// 获取所有笔记
-export const getAllNotes = async () => {
-  try {
-    const notes = uni.getStorageSync('notes') || []
-    return notes.sort((a: any, b: any) => b.updateTime - a.updateTime)
-  } catch (error) {
-    console.error('获取所有笔记时出错:', error)
+    return uni.getStorageSync('notes') || []
+  } catch (e) {
+    console.error('获取所有笔记失败:', e)
     return []
   }
 }
+
+/**
+ * 删除笔记
+ * @param id 笔记ID
+ * @returns 是否删除成功
+ */
+export const deleteNote = async (id: number): Promise<boolean> => {
+  try {
+    const allNotes = uni.getStorageSync('notes') || []
+    const newNotes = allNotes.filter((n: Note) => n.id !== id)
+    uni.setStorageSync('notes', newNotes)
+    return true
+  } catch (e) {
+    console.error('删除笔记失败:', e)
+    return false
+  }
+} 
