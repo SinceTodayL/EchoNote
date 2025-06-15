@@ -12,11 +12,86 @@
 
 ## 项目展示
 
+本项目功能主要分为4个界面，分别是："备忘录笔记编辑"、"AI助手"、"待办"、"我的" 界面
+
+ <img src=".\assets\备忘录主界面.png" style="zoom: 60%;" /> | <img src=".\assets\AI 助手界面.png" style="zoom: 60%;" /> 
+
+<img src=".\assets\待办界面主界面.png" style="zoom:60%;" />|<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\个人主界面.png" style="zoom:60%;" />
+
+
+
+### 笔记编辑页面
+
+本页面是备忘录的基础功能，笔记的撰写和样式改变，以及便捷化语音输入，同时支持
+
+<img src=".\assets\基础编辑页面.gif" style="zoom: 67%;" />
+
+
+
+笔记编辑的时候可以自由切换样式：
+
+<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\主题样式切换展示.gif" style="zoom: 50%;" />
+
+
+
+主页中已经添加的笔记可以被置顶、删除
+
+<img src=".\assets\删除_置顶功能.gif" style="zoom:67%;" />
+
+
+
+**AI助手**同步跟随笔记内容，在编写笔记的时候，如果遇到问题或者需要 AI 助手帮助，可以随时询问AI助手，帮助用户补全笔记或者答疑解惑!
+
+<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\笔记编辑+AI.gif" style="zoom:67%;" />
+
+用户也可以随时根据关键字来搜索笔记内容
+
+<img src=".\assets\搜索界面.gif" style="zoom: 50%;" />
+
+
+
+### 待办界面
+
+用户可以随时在本界面添加任务，并勾选已经完成的任务，完成的任务可以在“已完成”界面中展示
+
+<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\待办界面展示.gif" style="zoom:67%;" />
+
+### AI 助手界面
+
+本项目接入 `Qwen3` 大模型，用户可以在此界面随时向AI提问，系统支持查看以往聊天记录的功能
+
+同时，本项目将 AI 与用户的笔记、待办深度结合，让用户可以随时提问关于笔记的内容，如：
+
+* 总结笔记内容
+* 查看今天有哪些待办
+* AI 帮助制定今日计划
+* 回答笔记相关问题，如：我之前记录的操作系统课程的复习要点有哪些？
+
+* ....
+
+下面给出部分展示：
+
+1. AI 基础问答界面展示、对话历史的查看与删除
+
+<img src=".\assets\AI基础问答.gif" style="zoom:67%;" />         |          <img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\AI对话历史_删除.gif" style="zoom:67%;" />
+
+
+
+2. AI 智能整合备忘录内容
+
+<img src=".\assets\AI智能查询备忘录.gif" style="zoom:67%;" />
+
+
+
+3. AI 根据备忘录、待办事项帮助制定当日计划
+
+<img src=".\assets\AI个性化制定计划.gif" style="zoom:67%;" />
 
 
 
 
-## 项目代码目录：
+
+## 项目代码目录
 
 ```py
 src/
@@ -68,7 +143,7 @@ src/
 
 
 
-## 开发记录：
+## 开发记录
 
 > 5.22 
 
@@ -143,4 +218,12 @@ AI 助手可以通过接口访问笔记页面、读入笔记内容进行智能�
 AI 记忆用户的所有笔记内容、待办内容，用户可随时通过AI查找笔记细节内容
 
 AI 助手通过自定义接口添加待办事项，读入内容并实现相应功能
+
+
+
+>6.16-6.18
+
+PPT制作和文档撰写
+
+项目收尾工作
 
