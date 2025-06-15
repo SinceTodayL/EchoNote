@@ -14,9 +14,16 @@
 
 本项目功能主要分为4个界面，分别是："备忘录笔记编辑"、"AI助手"、"待办"、"我的" 界面
 
- <img src=".\assets\备忘录主界面.png" style="zoom: 25%;" />| <img src=".\assets\AI 助手界面.png" style="zoom: 25%;" /> 
+ <img src=".\assets\备忘录主界面.png" style="zoom: 50%;" />| <img src=".\assets\AI 助手界面.png" style="zoom: 50%;" /> 
 
-<img src=".\assets\待办界面主界面.png" style="zoom: 25%;" />|<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\个人主界面.png" style="zoom: 25%;" />
+<img src=".\assets\待办界面主界面.png" style="zoom: 50%;" />|<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\个人主界面.png" style="zoom: 50%;" />
+
+
+
+<p align="center">
+  <img src=".\assets\待办界面主界面.png" width="200"/>
+  <img src=".\assets\待办界面主界面.png" width="200"/>
+</p>
 
 
 
