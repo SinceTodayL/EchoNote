@@ -26,35 +26,48 @@
 
 
 
-
+<p align="center">
+  <img src=".\assets\备主界面.png" width="300"/>
+  <img src=".\assets\AI手界面.png" width="300"/>
+</p>
 
 ### 笔记编辑页面
 
 本页面是备忘录的基础功能，笔记的撰写和样式改变，以及便捷化语音输入，同时支持
 
-<img src=".\assets\基础编辑页面.gif" style="zoom: 50%;" />
+<p align="center">
+  <img src=".\assets\基础编辑页面.gif" width="300"/>
+</p>
 
 
 
 笔记编辑的时候可以自由切换样式：
 
-<img src=".\assets\主题样式切换展示.gif" style="zoom: 33%;" />
+<p align="center">
+  <img src=".\assets\主题样式切换展示.gif" width="300"/>
+</p>
 
 
 
 主页中已经添加的笔记可以被置顶、删除
 
-<img src=".\assets\删除_置顶功能.gif" style="zoom: 50%;" />
+<p align="center">
+  <img src=".\assets\删除_置顶功能.gif" width="300"/>
+</p>
 
 
 
 **AI助手**同步跟随笔记内容，在编写笔记的时候，如果遇到问题或者需要 AI 助手帮助，可以随时询问AI助手，帮助用户补全笔记或者答疑解惑!
 
-<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\笔记编辑+AI.gif" style="zoom: 50%;" />
+<p align="center">
+  <img src=".\assets\笔记编辑+AI.gif" width="300"/>
+</p>
 
 用户也可以随时根据关键字来搜索笔记内容
 
-<img src=".\assets\搜索界面.gif" style="zoom: 33%;" />
+<p align="center">
+  <img src=".\assets\搜索界面.gif" width="300"/>
+</p>
 
 
 
@@ -62,7 +75,9 @@
 
 用户可以随时在本界面添加任务，并勾选已经完成的任务，完成的任务可以在“已完成”界面中展示
 
-<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\待办界面展示.gif" style="zoom: 50%;" />
+<p align="center">
+  <img src=".\assets\待办界面展示.gif" width="300"/>
+</p>
 
 ### AI 助手界面
 
@@ -90,13 +105,17 @@
 
 2. AI 智能整合备忘录内容
 
-<img src=".\assets\AI智能查询备忘录.gif" style="zoom:67%;" />
+<p align="center">
+  <img src=".\assets\AI智能查询备忘录.gif" width="300"/>
+</p>
 
 
 
 3. AI 根据备忘录、待办事项帮助制定当日计划
 
-<img src=".\assets\AI个性化制定计划.gif" style="zoom:67%;" />
+<p align="center">
+  <img src=".\assets\AI个性化制定计划.gif" width="300"/>
+</p>
 
 
 
