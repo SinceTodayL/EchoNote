@@ -14,16 +14,17 @@
 
 本项目功能主要分为4个界面，分别是："备忘录笔记编辑"、"AI助手"、"待办"、"我的" 界面
 
- <img src=".\assets\备忘录主界面.png" style="zoom: 50%;" />| <img src=".\assets\AI 助手界面.png" style="zoom: 50%;" /> 
-
-<img src=".\assets\待办界面主界面.png" style="zoom: 50%;" />|<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\个人主界面.png" style="zoom: 50%;" />
-
-
+<p align="center">
+  <img src=".\assets\备忘录主界面.png" width="300"/>
+  <img src=".\assets\AI 助手界面.png" width="300"/>
+</p>
 
 <p align="center">
-  <img src=".\assets\待办界面主界面.png" width="200"/>
-  <img src=".\assets\待办界面主界面.png" width="200"/>
+  <img src=".\assets\待办界面.png" width="300"/>
+  <img src=".\assets\个人主界面.png" width="300"/>
 </p>
+
+
 
 
 
@@ -31,29 +32,29 @@
 
 本页面是备忘录的基础功能，笔记的撰写和样式改变，以及便捷化语音输入，同时支持
 
-<img src=".\assets\基础编辑页面.gif" style="zoom: 67%;" />
+<img src=".\assets\基础编辑页面.gif" style="zoom: 50%;" />
 
 
 
 笔记编辑的时候可以自由切换样式：
 
-<img src=".\assets\主题样式切换展示.gif" style="zoom: 50%;" />
+<img src=".\assets\主题样式切换展示.gif" style="zoom: 33%;" />
 
 
 
 主页中已经添加的笔记可以被置顶、删除
 
-<img src=".\assets\删除_置顶功能.gif" style="zoom:67%;" />
+<img src=".\assets\删除_置顶功能.gif" style="zoom: 50%;" />
 
 
 
 **AI助手**同步跟随笔记内容，在编写笔记的时候，如果遇到问题或者需要 AI 助手帮助，可以随时询问AI助手，帮助用户补全笔记或者答疑解惑!
 
-<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\笔记编辑+AI.gif" style="zoom:67%;" />
+<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\笔记编辑+AI.gif" style="zoom: 50%;" />
 
 用户也可以随时根据关键字来搜索笔记内容
 
-<img src=".\assets\搜索界面.gif" style="zoom: 50%;" />
+<img src=".\assets\搜索界面.gif" style="zoom: 33%;" />
 
 
 
@@ -61,7 +62,7 @@
 
 用户可以随时在本界面添加任务，并勾选已经完成的任务，完成的任务可以在“已完成”界面中展示
 
-<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\待办界面展示.gif" style="zoom:67%;" />
+<img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\待办界面展示.gif" style="zoom: 50%;" />
 
 ### AI 助手界面
 
@@ -80,7 +81,10 @@
 
 1. AI 基础问答界面展示、对话历史的查看与删除
 
-<img src=".\assets\AI基础问答.gif" style="zoom:67%;" />         |          <img src="E:\_2024-2025_Undergraduate_Year2_Spring\Human_Computer_Interface\EchoNote\assets\AI对话历史_删除.gif" style="zoom:67%;" />
+<p align="center">
+  <img src=".\assets\AI基础问答.gif" width="300"/>
+  <img src=".\assets\AI对话历史_删除.gif" width="300"/>
+</p>
 
 
 
