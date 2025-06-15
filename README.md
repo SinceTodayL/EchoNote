@@ -12,6 +12,22 @@
 
 
 
+## 项目文件目录
+
+```python
+EchoNote/
+│
+├── assets                            # 图片\gif资源
+├── design                            # 项目原型设计、ppt展示资料等
+├── node_modules                      # 项目依赖（代码文件）
+├── uniapp/EchoNoteCode               # 项目主要代码（代码文件）
+├── README.md                         # 项目概览
+├── package-lock.json                 # 项目依赖包版本（代码文件）
+├── package.json                      # 项目配置（代码文件）
+```
+
+
+
 ## 项目展示
 
 本项目功能主要分为4个界面，分别是："备忘录笔记编辑"、"AI助手"、"待办"、"我的" 界面
@@ -118,7 +134,7 @@
 
 
 
-## 项目代码目录
+## 代码文件目录
 
 ```py
 src/
