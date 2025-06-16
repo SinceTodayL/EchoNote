@@ -2,8 +2,6 @@
 
 **2025年春《用户交互技术》期末课程项目**   
 
-**Instructor: Dr. Shuang LIANG**
-
 
 
 ## 项目简介
@@ -17,13 +15,13 @@
 ```python
 EchoNote/
 │
-├── assets                            # 图片\gif资源
-├── design                            # 项目原型设计、ppt展示资料等
-├── node_modules                      # 项目依赖（代码文件）
-├── uniapp/EchoNoteCode               # 项目主要代码（代码文件）
-├── README.md                         # 项目概览
-├── package-lock.json                 # 项目依赖包版本（代码文件）
-├── package.json                      # 项目配置（代码文件）
+├── assets/                            # 图片\gif资源
+├── design/                            # 项目原型设计、ppt展示资料等
+├── node_modules/                      # 项目依赖（代码文件，外部库）
+├── uniapp/EchoNoteCode/               # 项目主要代码（项目核心代码文件）
+├── README.md                          # 项目概览
+├── package-lock.json                  # 项目依赖包版本（代码文件）
+├── package.json                       # 项目配置（代码文件）
 ```
 
 
