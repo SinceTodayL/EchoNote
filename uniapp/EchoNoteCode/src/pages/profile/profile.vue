@@ -1,3 +1,10 @@
+<!--
+  File: todo.vue
+  Description: Todo list page for displaying, adding, completing, and deleting tasks.
+  Author: Zhen Liu
+  Created: 2025-05-22
+  Last Modified: 2025-06-14
+-->
 <template>
   <view class="profile-container">
     <!-- 自定义导航栏 -->

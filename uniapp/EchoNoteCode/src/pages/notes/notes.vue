@@ -1,3 +1,10 @@
+<!--
+  File: notes.vue
+  Description: Note list page for displaying, managing, and navigating to note details.
+  Author: Zhen Liu
+  Created: 2025-05-22
+  Last Modified: 2025-06-14
+-->
 <template>
   <view class="notes-container">
     <!-- 状态栏占位 -->

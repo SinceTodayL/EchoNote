@@ -1,3 +1,10 @@
+<!--
+  File: new-memo-improved.vue
+  Description: Simplified note editing page for creating, editing, and saving notes.
+  Author: Zhen Liu
+  Created: 2025-05-22
+  Last Modified: 2025-06-14
+-->
 <template>
   <view class="memo-container">
     <!-- 简洁导航栏 -->

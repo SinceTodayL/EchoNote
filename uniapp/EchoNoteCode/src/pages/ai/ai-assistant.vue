@@ -1,3 +1,10 @@
+<!--
+  File: ai-assistant.vue
+  Description: Main AI Assistant page for natural language interaction, AI service invocation, and automated note/todo management.
+  Author: Zhen Liu
+  Created: 2025-05-22
+  Last Modified: 2025-06-14
+-->
 <template>
   <view class="ai-container">
     <!-- 固定顶部导航栏 -->

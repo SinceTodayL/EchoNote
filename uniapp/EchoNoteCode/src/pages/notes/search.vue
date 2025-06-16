@@ -1,3 +1,10 @@
+<!--
+  File: search.vue
+  Description: Note search page with keyword filtering and highlight display.
+  Author: Zhen Liu
+  Created: 2025-05-22
+  Last Modified: 2025-06-14
+-->
 <template>
   <view class="search-container">
     <!-- 状态栏占位 -->

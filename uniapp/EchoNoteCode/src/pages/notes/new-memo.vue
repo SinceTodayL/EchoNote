@@ -1,3 +1,10 @@
+<!--
+  File: new-memo.vue
+  Description: Note editing page supporting creation, editing, AI assistance, and voice input.
+  Author: Zhen Liu
+  Created: 2025-05-22
+  Last Modified: 2025-06-14
+-->
 <template>
   <view class="memo-container" :style="{ backgroundColor: backgroundColor }">
     <!-- 状态栏占位 -->
