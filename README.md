@@ -121,7 +121,9 @@ EchoNote/
 <p align="center">
   <img src=".\assets\AI智能查询备忘录.gif" width="300"/>
 </p>
-
+<p align="center">
+  <img src=".\assets\AI智能整合备忘录.gif" width="300"/>
+</p>
 
 
 3. AI 根据备忘录、待办事项帮助制定当日计划
@@ -129,7 +131,6 @@ EchoNote/
 <p align="center">
   <img src=".\assets\AI个性化制定计划.gif" width="300"/>
 </p>
-
 
 
 
