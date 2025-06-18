@@ -4,7 +4,7 @@
 
 
 
-[想阅读本项目的项目文档?](design/Report.pdf)
+[项目文档](design/Report.pdf)
 
 
 
